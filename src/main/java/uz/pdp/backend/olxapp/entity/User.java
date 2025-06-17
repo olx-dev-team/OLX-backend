@@ -1,10 +1,12 @@
 package uz.pdp.backend.olxapp.entity;
 
 import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -19,16 +21,22 @@ import java.util.stream.Collectors;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class User extends LongIdAbstract implements UserDetails{
+@SQLDelete(sql = "UPDATE users SET active = false WHERE id = ?")
+@Checks({
+        @Check(name = "check_email", constraints = "email LIKE '%@%'")
+})
+public class User extends LongIdAbstract implements UserDetails {
 
     private String firstName;
 
     private String lastName;
 
+    @Column(unique = true)
     private String username;
 
     private String password;
 
+    @Column(nullable = false, unique = true)
     private String email;
 
     private String phoneNumber;

@@ -1,6 +1,8 @@
 # OLX-backend
 # 🛒 OLX-backend
 
+<img src="src/main/resources/docs/image/olx-logo.png" alt="OLX backend image" width="300"/>
+
 This project is a backend implementation of an OLX-style marketplace system built with **Spring Boot**.
 
 ## 📦 Features
