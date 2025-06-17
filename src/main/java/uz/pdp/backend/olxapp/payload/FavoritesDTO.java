@@ -7,6 +7,7 @@ import uz.pdp.backend.olxapp.entity.Favorites;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 /**
  * DTO for {@link Favorites}
@@ -16,9 +17,9 @@ import java.sql.Timestamp;
 @NoArgsConstructor
 public class FavoritesDTO implements Serializable {
 
-    private Timestamp createdAt;
+    private LocalDateTime createdAt;
 
-    private Timestamp updatedAt;
+    private LocalDateTime updatedAt;
 
     private boolean active;
 

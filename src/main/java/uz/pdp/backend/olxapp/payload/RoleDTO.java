@@ -16,10 +16,17 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class RoleDTO implements Serializable {
+
     private Timestamp createdAt;
+
     private Timestamp updatedAt;
+
     private boolean active;
+
     private Long id;
+
+
     private String name;
+
     private List<Permission> permissions;
 }

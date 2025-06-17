@@ -8,6 +8,7 @@ import uz.pdp.backend.olxapp.entity.User;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -18,9 +19,9 @@ import java.util.List;
 @NoArgsConstructor
 public class ChatDTO implements Serializable {
 
-    private Timestamp createdAt;
+    private LocalDateTime createdAt;
 
-    private Timestamp updatedAt;
+    private LocalDateTime updatedAt;
 
     private boolean active;
 
@@ -32,5 +33,5 @@ public class ChatDTO implements Serializable {
 
     private List<MessageDTO> messages;
 
-    private Timestamp senderAt;
+    private LocalDateTime senderAt;
 }

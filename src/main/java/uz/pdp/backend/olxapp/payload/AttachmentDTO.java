@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 /**
  * DTO for {@link uz.pdp.backend.olxapp.entity.Attachment}
@@ -15,9 +15,9 @@ import java.sql.Timestamp;
 @NoArgsConstructor
 public class AttachmentDTO implements Serializable {
 
-    private Timestamp createdAt;
+    private LocalDateTime createdAt;
 
-    private Timestamp updatedAt;
+    private LocalDateTime updatedAt;
 
     private boolean active;
 
