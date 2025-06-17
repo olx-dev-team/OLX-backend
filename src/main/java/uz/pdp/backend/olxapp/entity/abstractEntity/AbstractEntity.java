@@ -13,10 +13,11 @@ import java.time.LocalDateTime;
 public abstract class AbstractEntity {
 
     @CreationTimestamp
-    @Column(updatable = false, nullable = false)
+    @Column(updatable = false, nullable = false, name = "created_at")
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
     @Column(nullable = false)
