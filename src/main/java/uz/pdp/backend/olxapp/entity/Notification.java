@@ -1,6 +1,7 @@
 package uz.pdp.backend.olxapp.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import uz.pdp.backend.olxapp.entity.abstractEntity.LongIdAbstract;
@@ -13,6 +14,7 @@ import uz.pdp.backend.olxapp.entity.abstractEntity.LongIdAbstract;
 @Entity(name = "notification")
 public class Notification extends LongIdAbstract {
 
+    @Column(nullable = false)
     private String message;
 
     private boolean seen = false;

@@ -1,9 +1,6 @@
 package uz.pdp.backend.olxapp.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import uz.pdp.backend.olxapp.entity.abstractEntity.LongIdAbstract;
@@ -16,6 +13,7 @@ import java.sql.Timestamp;
 @Table(name = "message")
 public class Message extends LongIdAbstract {
 
+    @Column(nullable = false)
     private String text;
 
     @ManyToOne
