@@ -1,6 +1,9 @@
 package uz.pdp.backend.olxapp.entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import lombok.*;
 import uz.pdp.backend.olxapp.entity.abstractEntity.LongIdAbstract;
 import uz.pdp.backend.olxapp.enums.Permission;

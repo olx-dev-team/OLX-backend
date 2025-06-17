@@ -1,12 +1,17 @@
 package uz.pdp.backend.olxapp.payload;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import jdk.jfr.Timestamp;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import uz.pdp.backend.olxapp.entity.*;
+import lombok.Setter;
+import uz.pdp.backend.olxapp.entity.User;
 
 import java.io.Serializable;
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -17,38 +22,44 @@ import java.util.List;
 @NoArgsConstructor
 public class UserDTO implements Serializable {
 
-    private Timestamp createdAt;
+    private LocalDateTime createdAt;
 
-    private Timestamp updatedAt;
+    private LocalDateTime updatedAt;
 
     private boolean active;
 
     private Long id;
 
+    @NotBlank(message = "First name is required")
     private String firstName;
 
+    @NotBlank(message = "Last name is required")
     private String lastName;
 
+    @NotBlank(message = "Username is required and should be unique")
     private String username;
 
+    @NotBlank(message = "Password is required")
+    @Size(min = 6, message = "Password must have at least {min} characters")
     private String password;
 
+    @Email(message = "Invalid email address")
     private String email;
 
     private String phoneNumber;
 
     private Long roleId;
 
-    private List<Favorites> favorites;
+    private List<FavoritesDTO> favorites;
 
-    private List<Notification> receivedNotifications;
+    private List<NotificationDTO> receivedNotifications;
 
-    private List<Notification> sentNotifications;
+    private List<NotificationDTO> sentNotifications;
 
-    private List<Product> products;
+    private List<ProductDTO> products;
 
-    private List<Chat> sentChats;
+    private List<ChatDTO> sentChats;
 
-    private List<Chat> receivedChats;
+    private List<ChatDTO> receivedChats;
 
 }

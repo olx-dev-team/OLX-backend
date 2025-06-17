@@ -27,18 +27,22 @@ import java.util.stream.Collectors;
 })
 public class User extends LongIdAbstract implements UserDetails {
 
+    @Column(name = "first_name", nullable = false)
     private String firstName;
 
+    @Column(name = "last_name", nullable = false)
     private String lastName;
 
     @Column(unique = true)
     private String username;
 
+    @Column(nullable = false)
     private String password;
 
     @Column(nullable = false, unique = true)
     private String email;
 
+    @Column(name = "phone_number")
     private String phoneNumber;
 
     @ManyToOne
