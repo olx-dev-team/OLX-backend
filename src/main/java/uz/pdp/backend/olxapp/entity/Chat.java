@@ -25,5 +25,4 @@ public class Chat extends LongIdAbstract {
     @OneToMany(mappedBy = "chat", cascade = CascadeType.ALL)
     private List<Message> messages;
 
-    private Timestamp createdAt;
 }

@@ -20,5 +20,4 @@ public abstract class AbstractEntity {
     @UpdateTimestamp
     private Timestamp updatedAt;
 
-    private boolean active;
 }
