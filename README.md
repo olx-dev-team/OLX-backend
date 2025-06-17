@@ -1,4 +1,3 @@
-# OLX-backend
 # 🛒 OLX-backend
 
 <img src="src/main/resources/docs/image/olx-logo.png" alt="OLX backend image" width="300"/>
