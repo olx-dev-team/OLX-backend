@@ -3,8 +3,10 @@ package uz.pdp.backend.olxapp.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import uz.pdp.backend.olxapp.entity.abstractEntity.LongIdAbstract;
+import uz.pdp.backend.olxapp.payload.LoginDTO;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @AllArgsConstructor
@@ -24,5 +26,7 @@ public class Chat extends LongIdAbstract {
 
     @OneToMany(mappedBy = "chat", cascade = CascadeType.ALL)
     private List<Message> messages;
+
+    private LocalDateTime sentAt;
 
 }

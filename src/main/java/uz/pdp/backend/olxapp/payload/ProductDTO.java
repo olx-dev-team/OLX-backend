@@ -48,9 +48,9 @@ public class ProductDTO implements Serializable {
 
     private Long categoryId;
 
-    private List<Favorites> favorites = new ArrayList<>();
+    private List<FavoritesDTO> favorites = new ArrayList<>();
 
-    private List<Attachment> attachments = new ArrayList<>();
+    private List<AttachmentDTO> attachments = new ArrayList<>();
 
     private Long createdById;
 
