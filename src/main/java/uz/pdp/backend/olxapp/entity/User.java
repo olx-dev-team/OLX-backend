@@ -11,6 +11,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import uz.pdp.backend.olxapp.entity.abstractEntity.LongIdAbstract;
+import uz.pdp.backend.olxapp.enums.Role;
 
 import java.util.Collection;
 import java.util.List;
@@ -45,8 +46,8 @@ public class User extends LongIdAbstract implements UserDetails {
     @Column(name = "phone_number")
     private String phoneNumber;
 
-    @ManyToOne
-    @JoinColumn(name = "role_id")
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private Role role;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -69,9 +70,6 @@ public class User extends LongIdAbstract implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return role.getPermissions().stream()
-                .map(permission -> new SimpleGrantedAuthority(permission.name()))
-                .collect(Collectors.toList());
-
+        return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
     }
 }

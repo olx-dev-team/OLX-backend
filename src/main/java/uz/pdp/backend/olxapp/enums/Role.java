@@ -1,6 +1,6 @@
 package uz.pdp.backend.olxapp.enums;
 
-public enum Permission {
+public enum Role {
 
     ADMIN,
     USER,
