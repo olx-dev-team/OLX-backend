@@ -3,16 +3,15 @@ package uz.pdp.backend.olxapp.payload;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import jdk.jfr.Timestamp;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import uz.pdp.backend.olxapp.entity.User;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
+
 
 /**
  * DTO for {@link User}
@@ -52,7 +51,8 @@ public class UserDTO implements Serializable {
 
     private List<FavoritesDTO> favorites;
 
-    private List<NotificationDTO> receivedNotifications;
+    private List<NotificationDTO>
+            receivedNotifications;
 
     private List<NotificationDTO> sentNotifications;
 
