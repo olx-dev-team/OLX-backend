@@ -8,10 +8,8 @@ import uz.pdp.backend.olxapp.entity.Attachment;
 import uz.pdp.backend.olxapp.mapper.AttachmentMapper;
 import uz.pdp.backend.olxapp.payload.AttachmentDTO;
 
-import java.time.LocalDateTime;
-
 /**
- * Created by Avazbek on 18/06/25 15:07
+ * Created by Avazbek on 18/06/25 17:22
  */
 @RestController
 @RequestMapping("/api/test")
@@ -20,27 +18,16 @@ public class TestController {
 
     private final AttachmentMapper attachmentMapper;
 
-    @GetMapping()
-    public AttachmentDTO testMapper() {
+
+    @GetMapping
+    public AttachmentDTO getAttachment() {
         Attachment attachment = new Attachment();
 
-        attachment.setOriginalName("test");
-        attachment.setContentType("image/png");
+        attachment.setContentType("text/plain");
+        attachment.setOriginalName("test.txt");
         attachment.setFileSize(34L);
-        attachment.setPath("path");
-        attachment.setActive(true);
-        attachment.setCreatedAt(LocalDateTime.now());
-        attachment.setUpdatedAt(LocalDateTime.now());
-
-
+        attachment.setPath("C:\\Users\\Avazbek\\Desktop\\test.txt");
         return attachmentMapper.toDto(attachment);
 
-
-
-
-
-
-
     }
-
 }
