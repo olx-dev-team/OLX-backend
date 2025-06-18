@@ -1,14 +1,15 @@
 package uz.pdp.backend.olxapp.payload;
 
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import jdk.jfr.Timestamp;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import uz.pdp.backend.olxapp.entity.User;
+import uz.pdp.backend.olxapp.enums.Role;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -48,7 +49,8 @@ public class UserDTO implements Serializable {
 
     private String phoneNumber;
 
-    private Long roleId;
+    @Enumerated(EnumType.STRING)
+    private Role role;
 
     private List<FavoritesDTO> favorites;
 
