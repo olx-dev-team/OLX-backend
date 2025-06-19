@@ -5,13 +5,14 @@ import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import uz.pdp.backend.olxapp.exception.UserNameAlreadyExistException;
+import uz.pdp.backend.olxapp.exception.*;
 import uz.pdp.backend.olxapp.payload.errors.ErrorDTO;
 import uz.pdp.backend.olxapp.payload.errors.FieldErrorDTO;
 
@@ -24,30 +25,30 @@ import java.util.Map;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<?> handleAccessDeniedException(AccessDeniedException e) {
+        return buildResponse(HttpStatus.FORBIDDEN, "access denied");
+    }
+
     @ExceptionHandler(ExpiredJwtException.class)
     public ResponseEntity<?> handleExpiredJwtException(ExpiredJwtException e) {
-        return buildResponse(HttpStatus.UNAUTHORIZED, "Token muddati tugagan");
+        return buildResponse(HttpStatus.UNAUTHORIZED, "Token expired");
     }
 
     @ExceptionHandler(MalformedJwtException.class)
     public ResponseEntity<?> handleMalformedJwtException(MalformedJwtException e) {
-        return buildResponse(HttpStatus.BAD_REQUEST, "Token format noto‘g‘ri");
+        return buildResponse(HttpStatus.BAD_REQUEST, "Token format not correct");
     }
 
-    @ExceptionHandler(SignatureException.class)
+    @ExceptionHandler(value = SignatureException.class)
     public ResponseEntity<?> handleSignatureException(SignatureException e) {
-        return buildResponse(HttpStatus.UNAUTHORIZED, "Token imzosi noto‘g‘ri");
+        return buildResponse(HttpStatus.UNAUTHORIZED, "Token signature is invalid");
     }
 
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<?> handleBadCredentials(BadCredentialsException e) {
-        return buildResponse(HttpStatus.UNAUTHORIZED, "Login yoki parol noto‘g‘ri");
-    }
-
-
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<?> handleGenericException(Exception e) {
-        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Noma’lum server xatosi: " + e.getMessage());
+        return buildResponse(HttpStatus.UNAUTHORIZED, "Login or password incorrect");
     }
 
     @ExceptionHandler(value = MethodArgumentNotValidException.class)
@@ -76,6 +77,33 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.CONFLICT, "username already exist");
     }
 
+    @ExceptionHandler(AttachmentSaveException.class)
+    public ResponseEntity<?> handleAttachmentSaveException(AttachmentSaveException e) {
+        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "attachment save exception", e.getMessage());
+    }
+
+    @ExceptionHandler(FileDeletionException.class)
+    public ResponseEntity<?> handleFileDeletionException(FileDeletionException e) {
+        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "file deletion exception", e.getMessage());
+    }
+
+    @ExceptionHandler(FileNotFountException.class)
+    public ResponseEntity<?> handleFileNotFountException(FileNotFountException e) {
+        return buildResponse(HttpStatus.NOT_FOUND, "file not found", e.getMessage());
+
+    }
+
+    @ExceptionHandler(InvalidImageFileException.class)
+    public ResponseEntity<?> handleInvalidImageFileException(InvalidImageFileException e) {
+        return buildResponse(HttpStatus.BAD_REQUEST, "invalid image file type", e.getMessage());
+    }
+
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<?> handleGenericException(Exception e) {
+        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Noma’lum server xatosi: " + e.getMessage());
+    }
+
 
     private ResponseEntity<Map<String, Object>> buildResponse(HttpStatus status, String message) {
         Map<String, Object> body = new HashMap<>();
@@ -83,6 +111,16 @@ public class GlobalExceptionHandler {
         body.put("status", status.value());
         body.put("error", status.getReasonPhrase());
         body.put("message", message);
+        return new ResponseEntity<>(body, status);
+    }
+
+    private ResponseEntity<Map<String, Object>> buildResponse(HttpStatus status, String message, String details) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", status.value());
+        body.put("error", status.getReasonPhrase());
+        body.put("message", message);
+        body.put("details", details); // foydali texnik izoh
         return new ResponseEntity<>(body, status);
     }
 
