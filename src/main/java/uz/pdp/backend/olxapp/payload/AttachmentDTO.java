@@ -15,10 +15,6 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class AttachmentDTO implements Serializable {
 
-    private LocalDateTime createdAt;
-
-    private LocalDateTime updatedAt;
-
     private boolean active;
 
     private Long id;
