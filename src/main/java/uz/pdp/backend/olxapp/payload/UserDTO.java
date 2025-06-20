@@ -15,6 +15,7 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 
+
 /**
  * DTO for {@link User}
  */
@@ -54,7 +55,8 @@ public class UserDTO implements Serializable {
 
     private List<FavoritesDTO> favorites;
 
-    private List<NotificationDTO> receivedNotifications;
+    private List<NotificationDTO>
+            receivedNotifications;
 
     private List<NotificationDTO> sentNotifications;
 

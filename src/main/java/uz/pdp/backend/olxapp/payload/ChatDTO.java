@@ -3,11 +3,8 @@ package uz.pdp.backend.olxapp.payload;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import uz.pdp.backend.olxapp.entity.Message;
-import uz.pdp.backend.olxapp.entity.User;
 
 import java.io.Serializable;
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
 
