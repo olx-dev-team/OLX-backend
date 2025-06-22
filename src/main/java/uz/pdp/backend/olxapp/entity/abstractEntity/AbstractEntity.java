@@ -3,6 +3,7 @@ package uz.pdp.backend.olxapp.entity.abstractEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -11,7 +12,7 @@ import java.time.LocalDateTime;
 
 @SuppressWarnings("ALL")
 @MappedSuperclass
-
+@FieldNameConstants
 public abstract class AbstractEntity {
 
     @CreationTimestamp

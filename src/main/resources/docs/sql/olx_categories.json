@@ -1,0 +1,472 @@
+[
+  {
+    "id": null,
+    "name": "Baby & Kids",
+    "parentId": null
+  },
+  {
+    "id": null,
+    "name": "Real Estate",
+    "parentId": null
+  },
+  {
+    "id": null,
+    "name": "Transport",
+    "parentId": null
+  },
+  {
+    "id": null,
+    "name": "Jobs",
+    "parentId": null
+  },
+  {
+    "id": null,
+    "name": "Animals",
+    "parentId": null
+  },
+  {
+    "id": null,
+    "name": "Home & Garden",
+    "parentId": null
+  },
+  {
+    "id": null,
+    "name": "Electronics",
+    "parentId": null
+  },
+  {
+    "id": null,
+    "name": "Business & Services",
+    "parentId": null
+  },
+  {
+    "id": null,
+    "name": "Fashion & Style",
+    "parentId": null
+  },
+  {
+    "id": null,
+    "name": "Hobbies, Recreation & Sports",
+    "parentId": null
+  },
+  {
+    "id": null,
+    "name": "Freebies",
+    "parentId": null
+  },
+  {
+    "id": null,
+    "name": "Exchange",
+    "parentId": null
+  },
+  {
+    "id": null,
+    "name": "Kids' Clothing",
+    "parentId": 1
+  },
+  {
+    "id": null,
+    "name": "Kids' Shoes",
+    "parentId": 1
+  },
+  {
+    "id": null,
+    "name": "Strollers",
+    "parentId": 1
+  },
+  {
+    "id": null,
+    "name": "Child Car Seats",
+    "parentId": 1
+  },
+  {
+    "id": null,
+    "name": "Kids' Furniture",
+    "parentId": 1
+  },
+  {
+    "id": null,
+    "name": "Toys",
+    "parentId": 1
+  },
+  {
+    "id": null,
+    "name": "Apartments",
+    "parentId": 2
+  },
+  {
+    "id": null,
+    "name": "Houses",
+    "parentId": 2
+  },
+  {
+    "id": null,
+    "name": "Land Plots",
+    "parentId": 2
+  },
+  {
+    "id": null,
+    "name": "Commercial Properties",
+    "parentId": 2
+  },
+  {
+    "id": null,
+    "name": "Garages / Parking",
+    "parentId": 2
+  },
+  {
+    "id": null,
+    "name": "Real Estate Abroad",
+    "parentId": 2
+  },
+  {
+    "id": null,
+    "name": "Sale",
+    "parentId": 19
+  },
+  {
+    "id": null,
+    "name": "Long-term Rent",
+    "parentId": 19
+  },
+  {
+    "id": null,
+    "name": "Daily Rent",
+    "parentId": 19
+  },
+  {
+    "id": null,
+    "name": "Sale",
+    "parentId": 20
+  },
+  {
+    "id": null,
+    "name": "Long-term Rent",
+    "parentId": 20
+  },
+  {
+    "id": null,
+    "name": "Daily Rent",
+    "parentId": 20
+  },
+  {
+    "id": null,
+    "name": "Cars",
+    "parentId": 3
+  },
+  {
+    "id": null,
+    "name": "Trucks",
+    "parentId": 3
+  },
+  {
+    "id": null,
+    "name": "Special Equipment",
+    "parentId": 3
+  },
+  {
+    "id": null,
+    "name": "Buses",
+    "parentId": 3
+  },
+  {
+    "id": null,
+    "name": "Moto",
+    "parentId": 3
+  },
+  {
+    "id": null,
+    "name": "Car Parts & Accessories",
+    "parentId": 3
+  },
+  {
+    "id": null,
+    "name": "Auto Parts",
+    "parentId": 36
+  },
+  {
+    "id": null,
+    "name": "Tires, Disks & Wheels",
+    "parentId": 36
+  },
+  {
+    "id": null,
+    "name": "Car Accessories",
+    "parentId": 36
+  },
+  {
+    "id": null,
+    "name": "Transport / Logistics",
+    "parentId": 4
+  },
+  {
+    "id": null,
+    "name": "Construction / Repair",
+    "parentId": 4
+  },
+  {
+    "id": null,
+    "name": "Sales",
+    "parentId": 4
+  },
+  {
+    "id": null,
+    "name": "Restaurants / Food / Hospitality",
+    "parentId": 4
+  },
+  {
+    "id": null,
+    "name": "Security / Safety",
+    "parentId": 4
+  },
+  {
+    "id": null,
+    "name": "Production / Energy",
+    "parentId": 4
+  },
+  {
+    "id": null,
+    "name": "IT / Telecom / Computers",
+    "parentId": 4
+  },
+  {
+    "id": null,
+    "name": "Education / Science",
+    "parentId": 4
+  },
+  {
+    "id": null,
+    "name": "Dogs",
+    "parentId": 5
+  },
+  {
+    "id": null,
+    "name": "Cats",
+    "parentId": 5
+  },
+  {
+    "id": null,
+    "name": "Birds",
+    "parentId": 5
+  },
+  {
+    "id": null,
+    "name": "Aquarium",
+    "parentId": 5
+  },
+  {
+    "id": null,
+    "name": "Farm Animals",
+    "parentId": 5
+  },
+  {
+    "id": null,
+    "name": "Pet Supplies",
+    "parentId": 5
+  },
+  {
+    "id": null,
+    "name": "Furniture",
+    "parentId": 6
+  },
+  {
+    "id": null,
+    "name": "Kitchenware",
+    "parentId": 6
+  },
+  {
+    "id": null,
+    "name": "Construction / Repair Goods",
+    "parentId": 6
+  },
+  {
+    "id": null,
+    "name": "Tools",
+    "parentId": 6
+  },
+  {
+    "id": null,
+    "name": "Plants",
+    "parentId": 6
+  },
+  {
+    "id": null,
+    "name": "Bedroom Furniture",
+    "parentId": 57
+  },
+  {
+    "id": null,
+    "name": "Living Room Furniture",
+    "parentId": 57
+  },
+  {
+    "id": null,
+    "name": "Kitchen Furniture",
+    "parentId": 57
+  },
+  {
+    "id": null,
+    "name": "Phones & Accessories",
+    "parentId": 7
+  },
+  {
+    "id": null,
+    "name": "Computers & Components",
+    "parentId": 7
+  },
+  {
+    "id": null,
+    "name": "Photo / Video",
+    "parentId": 7
+  },
+  {
+    "id": null,
+    "name": "TV / Video Equipment",
+    "parentId": 7
+  },
+  {
+    "id": null,
+    "name": "Audio Equipment",
+    "parentId": 7
+  },
+  {
+    "id": null,
+    "name": "Home Appliances",
+    "parentId": 7
+  },
+  {
+    "id": null,
+    "name": "Games & Game Consoles",
+    "parentId": 7
+  },
+  {
+    "id": null,
+    "name": "Mobile Phones",
+    "parentId": 67
+  },
+  {
+    "id": null,
+    "name": "Accessories",
+    "parentId": 67
+  },
+  {
+    "id": null,
+    "name": "Laptops",
+    "parentId": 68
+  },
+  {
+    "id": null,
+    "name": "Tablets",
+    "parentId": 68
+  },
+  {
+    "id": null,
+    "name": "Desktop Computers",
+    "parentId": 68
+  },
+  {
+    "id": null,
+    "name": "Construction / Repair / Cleaning",
+    "parentId": 8
+  },
+  {
+    "id": null,
+    "name": "Financial Services / Business Partnership",
+    "parentId": 8
+  },
+  {
+    "id": null,
+    "name": "Transport Services",
+    "parentId": 8
+  },
+  {
+    "id": null,
+    "name": "Beauty / Health",
+    "parentId": 8
+  },
+  {
+    "id": null,
+    "name": "Education / Sports",
+    "parentId": 8
+  },
+  {
+    "id": null,
+    "name": "Equipment",
+    "parentId": 8
+  },
+  {
+    "id": null,
+    "name": "Clothing / Footwear",
+    "parentId": 9
+  },
+  {
+    "id": null,
+    "name": "Accessories",
+    "parentId": 9
+  },
+  {
+    "id": null,
+    "name": "Jewelry & Watches",
+    "parentId": 9
+  },
+  {
+    "id": null,
+    "name": "Gifts",
+    "parentId": 9
+  },
+  {
+    "id": null,
+    "name": "Men's Clothing",
+    "parentId": 86
+  },
+  {
+    "id": null,
+    "name": "Women's Clothing",
+    "parentId": 86
+  },
+  {
+    "id": null,
+    "name": "Men's Footwear",
+    "parentId": 86
+  },
+  {
+    "id": null,
+    "name": "Women's Footwear",
+    "parentId": 86
+  },
+  {
+    "id": null,
+    "name": "Antiques / Collections",
+    "parentId": 10
+  },
+  {
+    "id": null,
+    "name": "Musical Instruments",
+    "parentId": 10
+  },
+  {
+    "id": null,
+    "name": "Sports / Recreation",
+    "parentId": 10
+  },
+  {
+    "id": null,
+    "name": "Books / Magazines",
+    "parentId": 10
+  },
+  {
+    "id": null,
+    "name": "Hunting / Fishing",
+    "parentId": 10
+  },
+  {
+    "id": null,
+    "name": "Bicycles",
+    "parentId": 95
+  },
+  {
+    "id": null,
+    "name": "Fitness & Gym Equipment",
+    "parentId": 95
+  }
+]

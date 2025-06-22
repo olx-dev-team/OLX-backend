@@ -6,10 +6,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import uz.pdp.backend.olxapp.entity.Attachment;
-import uz.pdp.backend.olxapp.exception.AttachmentSaveException;
-import uz.pdp.backend.olxapp.exception.FileDeletionException;
-import uz.pdp.backend.olxapp.exception.FileNotFountException;
-import uz.pdp.backend.olxapp.exception.InvalidImageFileException;
+import uz.pdp.backend.olxapp.exception.*;
+import uz.pdp.backend.olxapp.mapper.AttachmentMapper;
 import uz.pdp.backend.olxapp.payload.AttachmentDTO;
 import uz.pdp.backend.olxapp.repository.AttachmentRepository;
 
@@ -21,15 +19,17 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class AttachmentServiceImpl implements AttachmentService {
 
     private final AttachmentRepository attachmentRepository;
+    private final AttachmentMapper attachmentMapper;
 
     @Value("${olx.app.base-folder}")
-    private String baseFolderProperty; // non-static
+    private String baseFolderProperty;
 
     private static String BASE_FOLDER;
 
@@ -41,206 +41,118 @@ public class AttachmentServiceImpl implements AttachmentService {
     @Override
     public AttachmentDTO getByIdAttachment(Long id) {
         Attachment attachment = attachmentRepository.findById(id)
-                .orElseThrow(() -> new FileNotFountException("Not found"));
-//        return new AttachmentDTO(); // TODO: Map to actual DTO
-        return new AttachmentDTO(
-                attachment.getCreatedAt(),
-                attachment.getUpdatedAt(),
-                attachment.isActive(),
-                attachment.getId(),
-                attachment.getOriginalName(),
-                attachment.getContentType(),
-                attachment.getFileSize(),
-                attachment.getPath()
-        );
+                .orElseThrow(() -> new FileNotFountException("Attachment not found with id: " + id));
+        return attachmentMapper.toDto(attachment);
     }
 
     @Override
     public AttachmentDTO upload(MultipartFile file) {
-        try {
-            validateImage(file); // ✅ Fayl turi tekshiruvi
+        validateImage(file);
+        Attachment attachment = saveFileToStorage(file);
+        Attachment saved = attachmentRepository.save(attachment);
+        return attachmentMapper.toDto(saved);
+    }
 
+    @Override
+    public List<AttachmentDTO> upload(List<MultipartFile> multipartFiles) {
+
+        List<Attachment> attachments = multipartFiles.stream().map(this::saveFileToStorage).collect(Collectors.toList());
+
+        List<Attachment> attachments1 = attachmentRepository.saveAll(attachments);
+        return attachments1.stream().map(attachmentMapper::toDto).toList();
+
+
+    }
+
+    @Override
+    public void update(Long id, MultipartFile file) {
+        validateImage(file);
+
+        Attachment attachment = attachmentRepository.findById(id)
+                .orElseThrow(() -> new FileNotFountException("Attachment not found with id: " + id));
+
+        deletePhysicalFile(attachment.getPath());
+        Attachment updated = saveFileToStorage(file);
+
+        attachment.setOriginalName(updated.getOriginalName());
+        attachment.setFileSize(updated.getFileSize());
+        attachment.setContentType(updated.getContentType());
+        attachment.setPath(updated.getPath());
+
+        attachmentRepository.save(attachment);
+    }
+
+    @Override
+    public void deleteById(Long id) {
+        Attachment attachment = attachmentRepository.findById(id)
+                .orElseThrow(() -> new FileNotFountException("Attachment not found with id: " + id));
+
+        deletePhysicalFile(attachment.getPath());
+        attachmentRepository.delete(attachment);
+    }
+
+    private Attachment saveFileToStorage(MultipartFile file) {
+        try {
             String originalFilename = file.getOriginalFilename();
             long size = file.getSize();
             String contentType = file.getContentType();
 
-            String extension = "";
-            if (originalFilename != null && originalFilename.contains(".")) {
-                extension = originalFilename.substring(originalFilename.lastIndexOf("."));
-            }
-
-            LocalDate now = LocalDate.now();
-            String year = String.valueOf(now.getYear());
-            String month = now.getMonth().name();
-            month = month.charAt(0) + month.substring(1).toLowerCase();
-            Path directoryPath = Path.of(BASE_FOLDER, year, month);
+            String extension = extractExtension(originalFilename);
+            Path directoryPath = buildDirectoryPath();
             Files.createDirectories(directoryPath);
 
-            Path filePath;
-            String uniqueName;
-            do {
-                uniqueName = UUID.randomUUID() + extension;
-                filePath = directoryPath.resolve(uniqueName);
-            } while (Files.exists(filePath));
+            Path filePath = generateUniqueFilePath(directoryPath, extension);
 
             try (InputStream inputStream = file.getInputStream()) {
                 Files.copy(inputStream, filePath);
             }
 
-            Attachment attachment = new Attachment(
+            return new Attachment(
                     originalFilename,
                     contentType,
                     size,
-                    filePath.toString()
-            );
-
-            Attachment saved = attachmentRepository.save(attachment);
-            return new AttachmentDTO(
-                    saved.getCreatedAt(),
-                    saved.getUpdatedAt(),
-                    saved.isActive(),
-                    saved.getId(),
-                    saved.getOriginalName(),
-                    saved.getContentType(),
-                    saved.getFileSize(),
-                    saved.getPath()
+                    filePath.toString(),
+                    false
             );
 
         } catch (IOException e) {
-            throw new AttachmentSaveException("Error saving attachment: " + e.getMessage());
+            throw new AttachmentSaveException("Error saving file: " + file.getOriginalFilename());
         }
     }
 
-    @Override
-    public void upload(List<MultipartFile> multipartFiles) {
-        List<AttachmentDTO> uploaded = new ArrayList<>();
-
-        for (MultipartFile file : multipartFiles) {
-            validateImage(file); // ✅ Ruxsat etilgan fayl turi
-
-            try {
-                String originalFilename = file.getOriginalFilename();
-                long size = file.getSize();
-                String contentType = file.getContentType();
-
-                String extension = "";
-                if (originalFilename != null && originalFilename.contains(".")) {
-                    extension = originalFilename.substring(originalFilename.lastIndexOf("."));
-                }
-
-                LocalDate now = LocalDate.now();
-                String year = String.valueOf(now.getYear());
-                String month = now.getMonth().name();
-                month = month.charAt(0) + month.substring(1).toLowerCase();
-
-                Path directoryPath = Path.of(BASE_FOLDER, year, month);
-                Files.createDirectories(directoryPath);
-
-                Path filePath;
-                String uniqueName;
-                do {
-                    uniqueName = UUID.randomUUID() + extension;
-                    filePath = directoryPath.resolve(uniqueName);
-                } while (Files.exists(filePath));
-
-                try (InputStream inputStream = file.getInputStream()) {
-                    Files.copy(inputStream, filePath);
-                }
-
-                Attachment attachment = new Attachment(
-                        originalFilename,
-                        contentType,
-                        size,
-                        filePath.toString()
-                );
-
-                attachmentRepository.save(attachment);
-
-            } catch (IOException e) {
-                throw new AttachmentSaveException("Faylni saqlashda xatolik: " + file.getOriginalFilename());
-            }
-        }
-
-    }
-
-
-    @Override
-    public void update(Long id, MultipartFile file) {
-        validateImage(file); // ✅ Fayl turi tekshiruvi
-
-        Attachment attachment = attachmentRepository.findById(id)
-                .orElseThrow(() -> new FileNotFountException("Attachment not found"));
-
-        // 1. Eski faylni diskdan o‘chirish
-        Path oldPath = Path.of(attachment.getPath());
+    private void deletePhysicalFile(String pathStr) {
+        Path path = Path.of(pathStr);
         try {
-            if (Files.exists(oldPath)) {
-                Files.delete(oldPath);
+            if (Files.exists(path)) {
+                Files.delete(path);
             }
         } catch (IOException e) {
-            throw new FileDeletionException("File deletion error: " + e.getMessage());
-        }
-
-        try {
-            // 2. Fayl ma’lumotlari
-            String originalFilename = file.getOriginalFilename();
-            long size = file.getSize();
-            String contentType = file.getContentType();
-            String extension = "";
-            if (originalFilename != null && originalFilename.contains(".")) {
-                extension = originalFilename.substring(originalFilename.lastIndexOf("."));
-            }
-
-            LocalDate now = LocalDate.now();
-            String year = String.valueOf(now.getYear());
-            String month = now.getMonth().name();
-            month = month.charAt(0) + month.substring(1).toLowerCase();
-            Path directoryPath = Path.of(BASE_FOLDER, year, month);
-            Files.createDirectories(directoryPath);
-
-            String uniqueName;
-            Path newPath;
-            do {
-                uniqueName = UUID.randomUUID() + extension;
-                newPath = directoryPath.resolve(uniqueName);
-            } while (Files.exists(newPath));
-
-            try (InputStream inputStream = file.getInputStream()) {
-                Files.copy(inputStream, newPath);
-            }
-
-            // 3. DB yangilanishi
-            attachment.setOriginalName(originalFilename);
-            attachment.setFileSize(size);
-            attachment.setContentType(contentType);
-            attachment.setPath(newPath.toString());
-
-            attachmentRepository.save(attachment);
-
-        } catch (IOException e) {
-            throw new RuntimeException("File save error: " + e.getMessage());
+            throw new FileDeletionException("Error deleting file: " + pathStr);
         }
     }
 
-
-    @Override
-    public void deleteById(Long id) {
-
-        Attachment attachment;
-        attachment = attachmentRepository.findById(id)
-                .orElseThrow(() -> new FileNotFountException("Attachment not found"));
-
-        Path filePath = Path.of(attachment.getPath());
-
-        try {
-            if (Files.exists(filePath)) {
-                Files.delete(filePath);
-            }
-        } catch (IOException e) {
-            throw new FileDeletionException("File deletion error: " + e.getMessage());
+    private String extractExtension(String filename) {
+        if (filename != null && filename.contains(".")) {
+            return filename.substring(filename.lastIndexOf("."));
         }
+        return "";
+    }
 
-        attachmentRepository.delete(attachment);
+    private Path buildDirectoryPath() {
+        LocalDate now = LocalDate.now();
+        String year = String.valueOf(now.getYear());
+        String month = now.getMonth().name().charAt(0) + now.getMonth().name().substring(1).toLowerCase();
+        return Path.of(BASE_FOLDER, year, month);
+    }
+
+    private Path generateUniqueFilePath(Path directoryPath, String extension) throws IOException {
+        Path filePath;
+        String uniqueName;
+        do {
+            uniqueName = UUID.randomUUID() + extension;
+            filePath = directoryPath.resolve(uniqueName);
+        } while (Files.exists(filePath));
+        return filePath;
     }
 
     private void validateImage(MultipartFile file) {
@@ -248,14 +160,12 @@ public class AttachmentServiceImpl implements AttachmentService {
         String filename = file.getOriginalFilename();
 
         if (contentType == null || !contentType.startsWith("image/")) {
-            throw new InvalidImageFileException("Faqat rasm fayllarga ruxsat beriladi.");
+            throw new InvalidImageFileException("Only image files are allowed.");
         }
 
         if (filename == null ||
                 !(filename.endsWith(".png") || filename.endsWith(".jpg") || filename.endsWith(".jpeg"))) {
-            throw new InvalidImageFileException("Faqat .png, .jpg va .jpeg fayllarga ruxsat beriladi.");
+            throw new InvalidImageFileException("Allowed formats: .png, .jpg, .jpeg");
         }
     }
-
-
 }

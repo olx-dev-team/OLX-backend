@@ -22,14 +22,14 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public TokenDTO login(@RequestBody LoginDTO loginDTO) {
+    public TokenDTO login(@Valid @RequestBody LoginDTO loginDTO) {
 
         return userService.login(loginDTO);
 
     }
 
     @PostMapping("/register")
-    public TokenDTO register(@RequestBody  @Valid RegisterDTO registerDto) {
+    public TokenDTO register(@RequestBody @Valid RegisterDTO registerDto) {
 
         return userService.register(registerDto);
 

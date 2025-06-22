@@ -38,8 +38,7 @@ public class Product extends LongIdAbstract {
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Favorites> favorites = new ArrayList<>();
 
-    @Column(nullable = false)
-    @ManyToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
+    @ManyToMany
     @JoinTable(name = "product_attachments",
             joinColumns = @JoinColumn(name = "product_id"),
             inverseJoinColumns = @JoinColumn(name = "attachment_id"))

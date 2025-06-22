@@ -10,7 +10,8 @@ public interface AttachmentService {
 
     AttachmentDTO upload(MultipartFile file);
 
-    void upload(List<MultipartFile> multipartFiles);
+    List<AttachmentDTO> upload(List<MultipartFile> multipartFiles);
+
 
     void update(Long id, MultipartFile file);
 
