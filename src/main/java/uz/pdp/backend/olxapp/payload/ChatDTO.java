@@ -16,19 +16,11 @@ import java.util.List;
 @NoArgsConstructor
 public class ChatDTO implements Serializable {
 
-    private LocalDateTime createdAt;
-
-    private LocalDateTime updatedAt;
-
-    private boolean active;
-
     private Long id;
 
-    private Long senderId;
+    private Long productId;
 
-    private Long receiverId;
+    private UserPublicDTO companion;
 
-    private List<MessageDTO> messages;
-
-    private LocalDateTime senderAt;
+    private MessageDTO lastMessage;
 }

@@ -20,22 +20,14 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class MessageDTO implements Serializable {
 
-    private LocalDateTime createdAt;
-
-    private LocalDateTime updatedAt;
-
-    private boolean active;
-
     private Long id;
 
-    @NotBlank(message = "Text is required")
-    private String text;
-    @Size(max = 1000, message = "Text must have maximum {max} characters")
-
-    private Long chatId;
-
-    private Long senderID;
+    private String content;
 
     private LocalDateTime sentAt;
+
+    private Long senderId;
+
+    private boolean isRead;
 
 }
