@@ -1,6 +1,5 @@
 package uz.pdp.backend.olxapp.service;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -10,6 +9,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import uz.pdp.backend.olxapp.entity.*;
 import uz.pdp.backend.olxapp.entity.abstractEntity.LongIdAbstract;
@@ -22,6 +22,7 @@ import uz.pdp.backend.olxapp.repository.AttachmentRepository;
 import uz.pdp.backend.olxapp.repository.CategoryRepository;
 import uz.pdp.backend.olxapp.repository.ProductRepository;
 
+import java.io.IOException;
 import java.util.*;
 
 @Service
@@ -80,7 +81,7 @@ public class ProductServiceImpl implements ProductService {
     @Transactional // Yangi obyekt va unga bog'liq boshqa obyektlarni saqlash uchun tranzaksiya muhim
     public ProductDTO save(ProductReqDTO productReqDTO, List<MultipartFile> images) {
 
-        if (images == null || images.isEmpty() || images.get(0).isEmpty()) {
+        if (images == null || images.isEmpty() || images.size() > 8) {
             throw new IllegalArgumentException("At least one image is required to create a product.");
         }
 
@@ -93,16 +94,6 @@ public class ProductServiceImpl implements ProductService {
         Category category = categoryRepository.findById(productReqDTO.getCategoryId())
                 .orElseThrow(() -> new EntityNotFoundException("Category not found with id: " + productReqDTO.getCategoryId(), HttpStatus.NOT_FOUND));
 
-        Product product = getProduct(productReqDTO, category, attachments);
-
-        Product save = productRepository.save(product);
-
-        return productMapper.toDto(save);
-
-
-    }
-
-    private static Product getProduct(ProductReqDTO productReqDTO, Category category, List<Attachment> attachments) {
         if (category.getChildren() != null && !category.getChildren().isEmpty()) {
             throw new IllegalStateException("You can only add products to the final subcategory.");
         }
@@ -113,17 +104,32 @@ public class ProductServiceImpl implements ProductService {
         }
 
 
-        return new Product(
-                productReqDTO.getTitle(),
-                productReqDTO.getDescription(),
-                productReqDTO.getPrice(),
-                false,
-                0,
-                category,
-                new ArrayList<Favorites>(),
-                attachments,
-                user
-        );
+        // 2-QADAM: Product ob'ektini yaratish (avvalgidek)
+        Product product = new Product();
+        product.setTitle(productReqDTO.getTitle());
+        product.setDescription(productReqDTO.getDescription());
+        product.setPrice(productReqDTO.getPrice());
+
+        product.setCategory(category);
+        product.setCreatedBy(user);
+
+        // 3-QADAM: ProductImage orqali bog'lash (avvalgidek)
+        boolean isFirstImage = true;
+        for (Attachment attachment : attachments) {
+            ProductImage productImage = new ProductImage();
+            productImage.setAttachment(attachment);
+            productImage.setProduct(product);
+            if (attachment.getOriginalName().equals(productReqDTO.getMainImageIdentifier())) {
+                productImage.setMain(true);
+                isFirstImage = false;
+            }
+            product.getProductImages().add(productImage);
+        }
+
+
+        return productMapper.toDto(productRepository.save(product));
+
+
     }
 
 
@@ -138,87 +144,114 @@ public class ProductServiceImpl implements ProductService {
      * @param newImages
      * @return "ProductDTO"
      */
-    @Override
-    @Transactional
-    public ProductDTO updateProduct(Long id, ProductUpdateDTO dto, List<MultipartFile> newImages) {
-        // 1. Product'ni bazadan topamiz
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + id, HttpStatus.NOT_FOUND));
+// ProductService klassi ichida
 
-        // 2. Xavfsizlik tekshiruvi: foydalanuvchi product egasi ekanligini tekshirish
+    @Override
+    @Transactional(rollbackFor = Exception.class) // Fayl operatsiyalari uchun Exception'ni qo'shib qo'yamiz
+    public ProductDTO updateProduct(Long productId, ProductUpdateDTO dto, List<MultipartFile> newImages) throws IOException {
+        // 1. Product'ni bazadan topamiz
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + productId, HttpStatus.NOT_FOUND));
+
+        // 2. Xavfsizlik tekshiruvi (bu qism o'zgarishsiz qoladi)
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (!(authentication.getPrincipal() instanceof User user)) {
             throw new AccessDeniedException("User is not authenticated");
         }
-        if (!user.equals(product.getCreatedBy())) { // Yoki getOwner()
+        if (!product.getCreatedBy().equals(user)) {
             throw new AccessDeniedException("You are not the owner of this product");
         }
 
+        // 3. Product'ning asosiy maydonlarini yangilaymiz
+        product.setTitle(dto.getTitle());
+        product.setDescription(dto.getDescription());
+        product.setPrice(dto.getPrice());
 
-        // 3. Yangi rasmlarni serverga yuklaymiz va Attachment obyektlarini yaratamiz
-        List<AttachmentDTO> newAttachments = new ArrayList<>();
-        if (newImages != null && !newImages.isEmpty()) {
-            // Sizning attachmentService'ingiz fayllarni yuklab, Attachment entity'larini qaytarishi kerak
-            newAttachments = attachmentService.upload(newImages); // Bu metod List<Attachment> qaytaradi deb faraz qilamiz
-        }
-
-        // 4. Mavjud rasmlarni boshqarish
-        List<Attachment> currentAttachments = product.getAttachments();
-        List<Long> keptImageIds = dto.getKeptImageIds() != null ? dto.getKeptImageIds() : Collections.emptyList();
-
-        // O'chirilishi kerak bo'lgan fayllarni alohida saqlab qo'yamiz
-        List<Attachment> attachmentsToDelete = currentAttachments.stream()
-                .filter(att -> !keptImageIds.contains(att.getId()))
-                .toList();
-
-        // Saqlanib qoladigan eski rasmlar ro'yxati
-        List<Attachment> keptAttachments = currentAttachments.stream()
-                .filter(att -> keptImageIds.contains(att.getId()))
-                .toList();
-
-        // 5. Product'ning rasm ro'yxatini yakuniy holatga keltiramiz
-        List<Attachment> finalAttachments = new ArrayList<>(keptAttachments);
-        finalAttachments.addAll(newAttachments.stream().map(attachmentMapper::toEntity).toList());
-
-        // 6. Asosiy (glavniy) rasmni belgilaymiz
-        updateMainImage(finalAttachments, dto.getMainImageIdentifier());
-
-        // 7. Product'ning boshqa ma'lumotlarini DTO'dan olib yangilaymiz
-        productMapper.updateFromDto(dto, product); // MapStruct yoki o'zingiz yozgan mapper
-
-        // Kategoriya yangilangan bo'lsa
+        // Category o'zgargan bo'lsa, uni topib o'rnatamiz
         if (dto.getCategoryId() != null && !dto.getCategoryId().equals(product.getCategory().getId())) {
             Category category = categoryRepository.findById(dto.getCategoryId())
                     .orElseThrow(() -> new EntityNotFoundException("Category not found with id: " + dto.getCategoryId(), HttpStatus.NOT_FOUND));
-            if (!category.getChildren().isEmpty()) {
-                throw new IllegalStateException("This category has child categories");
-            }
             product.setCategory(category);
         }
+        // active, isApproved kabi boshqa maydonlarni ham shu yerda yangilash mumkin
 
-        // 8. Product'ga yangilangan rasm ro'yxatini o'rnatamiz
-        product.getAttachments().clear();
-        product.getAttachments().addAll(finalAttachments);
-        // Har bir attachment'ga product'ni bog'laymiz (yangi qo'shilganlar uchun muhim)
-//        for (Attachment attachment : finalAttachments) {
-//            attachment.setProduct(product);
-//        }
+        // 4. O'chirilishi kerak bo'lgan rasmlarni aniqlash va o'chirish (Agar DTO'da o'chiriladigan rasmlar ID'si kelsa)
+        if (dto.getImagesToDelete() != null && !dto.getImagesToDelete().isEmpty()) {
+            List<ProductImage> imagesToRemove = new ArrayList<>();
+            for (ProductImage productImage : product.getProductImages()) {
+                if (dto.getImagesToDelete().contains(productImage.getAttachment().getId())) {
+                    imagesToRemove.add(productImage);
+                    // Faylni serverdan ham o'chirish kerak (agar kerak bo'lsa, alohida servisda)
+                    // attachmentService.deleteFile(productImage.getAttachment().getPath());
+                }
+            }
+            product.getProductImages().removeAll(imagesToRemove); // orphanRemoval=true tufayli DBdan o'chadi
+        }
 
-        // 9. Product'ni saqlaymiz.
-        // CascadeType.ALL va orphanRemoval=true tufayli Hibernate o'zi hamma ishni bajaradi:
-        // - Yangi attachment'larni INSERT qiladi.
-        // - Eskilaridan o'zgarganlarini UPDATE qiladi.
-        // - Ro'yxatdan olib tashlanganlarni (attachmentsToDelete) DELETE qiladi.
+        // 5. Yangi rasmlarni qo'shish
+        if (newImages != null && !newImages.isEmpty()) {
+            // AttachmentService fayllarni yuklab, Attachment entity'larini qaytaradi
+            List<Attachment> savedAttachments = attachmentService.saveAttachments(newImages); // Fayllarni saqlab, Attachment listini olamiz
+
+            for (Attachment attachment : savedAttachments) {
+                ProductImage productImage = new ProductImage();
+                productImage.setProduct(product);
+
+                productImage.setAttachment(attachment);
+                product.getProductImages().add(productImage);
+            }
+        }
+
+        // 6. Asosiy rasmni (isMain) yangilash logikasi
+        updateMainImage(product, dto.getMainImageIdentifier());
+
+
+        // 7. Yangilangan product'ni saqlash
         Product updatedProduct = productRepository.save(product);
 
-        // 10. O'chirilgan Attachment'larga tegishli FIZIK fayllarni serverdan o'chiramiz.
-        // Bu ishni tranzaksiya muvaffaqiyatli yakunlangandan keyin qilish eng to'g'risi.
-//        attachmentService.deletePhysicalFiles(attachmentsToDelete);
-
-        for (Attachment attachment : attachmentsToDelete) {
-            attachmentService.deleteById(attachment.getId());
-        }
+        // 8. Natijani DTO'ga o'girib qaytarish
         return productMapper.toDto(updatedProduct);
+    }
+
+
+    /**
+     * Product'ning asosiy rasmini yangilaydigan yordamchi metod.
+     * @param product Yangilanayotgan mahsulot
+     * @param mainImageIdentifier Asosiy rasm bo'lishi kerak bo'lgan attachment ID'si yoki fayl nomi
+     */
+    private void updateMainImage(Product product, String mainImageIdentifier) {
+        if (mainImageIdentifier == null || mainImageIdentifier.isBlank()) {
+            // Agar asosiy rasm belgilanmagan bo'lsa, mavjud rasmlardan birinchisini asosiy qilamiz
+            if (!product.getProductImages().isEmpty()) {
+                product.getProductImages().forEach(pi -> pi.setMain(false)); // Avval hammasini false qilamiz
+                product.getProductImages().get(0).setMain(true); // Birinchisini true qilamiz
+            }
+            return;
+        }
+
+        boolean mainImageSet = false;
+
+        // Barcha rasmlarni aylanib chiqamiz
+        for (ProductImage productImage : product.getProductImages()) {
+            Attachment attachment = productImage.getAttachment();
+
+            // `mainImageIdentifier` attachment ID'si yoki original fayl nomi bo'lishi mumkin. Ikkalasiga ham tekshiramiz.
+            boolean isThisTheMainImage = mainImageIdentifier.equals(String.valueOf(attachment.getId())) ||
+                    mainImageIdentifier.equals(attachment.getOriginalName());
+
+            if (isThisTheMainImage) {
+                productImage.setMain(true);
+                mainImageSet = true;
+            } else {
+                productImage.setMain(false);
+            }
+        }
+
+        // Agar foydalanuvchi ko'rsatgan rasm topilmasa (masalan, noto'g'ri id/nom kiritgan bo'lsa)
+        // yoki umuman rasmlar qolmagan bo'lsa, xatolik berish yoki birinchisini asosiy qilib qo'yish mumkin.
+        if (!mainImageSet && !product.getProductImages().isEmpty()) {
+            product.getProductImages().get(0).setMain(true);
+        }
     }
 
 
@@ -318,6 +351,7 @@ public class ProductServiceImpl implements ProductService {
         if (!attachments.isEmpty()) {
             attachments.get(0).setIsMain(true);
         }
+        attachmentRepository.saveAll(attachments);
     }
 
 

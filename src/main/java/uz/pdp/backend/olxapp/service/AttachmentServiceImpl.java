@@ -2,6 +2,7 @@ package uz.pdp.backend.olxapp.service;
 
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -21,6 +22,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AttachmentServiceImpl implements AttachmentService {
@@ -54,14 +56,74 @@ public class AttachmentServiceImpl implements AttachmentService {
     }
 
     @Override
-    public List<AttachmentDTO> upload(List<MultipartFile> multipartFiles) {
+    public List<AttachmentDTO> upload(List<MultipartFile> multipartFiles) throws AttachmentSaveException {
 
-        List<Attachment> attachments = multipartFiles.stream().map(this::saveFileToStorage).collect(Collectors.toList());
+//        List<Attachment> attachments = multipartFiles.stream().map(this::saveFileToStorage).collect(Collectors.toList());
+//
+//        List<Attachment> attachments1 = attachmentRepository.saveAll(attachments);
+//        return attachments1.stream().map(attachmentMapper::toDto).toList();
 
-        List<Attachment> attachments1 = attachmentRepository.saveAll(attachments);
-        return attachments1.stream().map(attachmentMapper::toDto).toList();
+        List<Path> paths = new ArrayList<>();
+        List<Attachment> attachments = new ArrayList<>();
+        for (MultipartFile file : multipartFiles) {
+
+            try {
+                String originalFilename = file.getOriginalFilename();
+                long size = file.getSize();
+                String contentType = file.getContentType();
+
+                String extension = extractExtension(originalFilename);
+                Path directoryPath = buildDirectoryPath();
+                Files.createDirectories(directoryPath);
+
+                Path filePath = generateUniqueFilePath(directoryPath, extension);
+
+                try (InputStream inputStream = file.getInputStream()) {
+                    Files.copy(inputStream, filePath);
+                }
+
+                Attachment attachment = new Attachment(
+                        originalFilename,
+                        contentType,
+                        size,
+                        filePath.toString()
+                );
+
+                Attachment saved = attachmentRepository.save(attachment);
+                paths.add(filePath);
+                attachments.add(saved);
 
 
+            } catch (IOException e) {
+
+                log.warn(e.getMessage());
+                cleanupStoredFiles(paths);
+
+            }
+
+
+        }
+
+        return attachments.stream().map(attachmentMapper::toDto).collect(Collectors.toList());
+
+
+    }
+
+    /**
+     * Berilgan ro'yxatdagi barcha fayllarni jismoniy o'chiradigan yordamchi metod.
+     * @param paths O'chirilishi kerak bo'lgan fayllar ro'yxati
+     */
+    private void cleanupStoredFiles(List<Path> paths) {
+        for (Path path : paths) {
+            try {
+                Files.deleteIfExists(path);
+                // Bu yerda log yozish mumkin, masalan: log.warn("Rollback due to error. Deleting file: {}", path);
+            } catch (IOException ex) {
+                // Faylni o'chirishda xatolik bo'lsa, uni log'ga yozib qo'yamiz,
+                // lekin asosiy xatolikni "yutib yubormaslik" uchun yangi exception tashlamaymiz.
+                 log.error("Could not delete file {} during cleanup", path, ex);
+            }
+        }
     }
 
     @Override
@@ -91,7 +153,7 @@ public class AttachmentServiceImpl implements AttachmentService {
         attachmentRepository.delete(attachment);
     }
 
-    private Attachment saveFileToStorage(MultipartFile file) {
+    private Attachment saveFileToStorage(MultipartFile file) throws AttachmentSaveException {
         try {
             String originalFilename = file.getOriginalFilename();
             long size = file.getSize();
@@ -111,8 +173,7 @@ public class AttachmentServiceImpl implements AttachmentService {
                     originalFilename,
                     contentType,
                     size,
-                    filePath.toString(),
-                    false
+                    filePath.toString()
             );
 
         } catch (IOException e) {

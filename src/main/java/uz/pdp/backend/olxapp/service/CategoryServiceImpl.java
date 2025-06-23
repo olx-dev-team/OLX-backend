@@ -7,6 +7,7 @@ import uz.pdp.backend.olxapp.entity.Category;
 import uz.pdp.backend.olxapp.exception.EntityNotFoundException;
 import uz.pdp.backend.olxapp.mapper.CategoryMapper;
 import uz.pdp.backend.olxapp.payload.CategoryDTO;
+import uz.pdp.backend.olxapp.payload.CategoryReqDTO;
 import uz.pdp.backend.olxapp.repository.CategoryRepository;
 
 import java.util.Collections;
@@ -36,13 +37,15 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public CategoryDTO save(CategoryDTO categoryDTO) {
+    public CategoryDTO save(CategoryReqDTO categoryReqDTO) {
 
-        Category parentCategory = categoryRepository.findById(categoryDTO.getParentId())
-                .orElseThrow(() -> new EntityNotFoundException("Category not found with id: " + categoryDTO.getParentId(), HttpStatus.NOT_FOUND));
-
+        Category parentCategory = null;
+        if (categoryReqDTO.getParentId() != 0) {
+             parentCategory = categoryRepository.findById(categoryReqDTO.getParentId())
+                    .orElseThrow(() -> new EntityNotFoundException("Category not found with id: " + categoryReqDTO.getParentId(), HttpStatus.NOT_FOUND));
+        }
         Category category = new Category(
-                categoryDTO.getName(),
+                categoryReqDTO.getName(),
                 parentCategory,
                 Collections.emptyList(),
                 Collections.emptyList()
@@ -75,7 +78,7 @@ public class CategoryServiceImpl implements CategoryService {
                 .orElseThrow(() -> new EntityNotFoundException("Category not found with id: " + id, HttpStatus.NOT_FOUND));
 
         categoryRepository.delete(category);
-        return  categoryMapper.toDto(category);
+        return categoryMapper.toDto(category);
 
     }
 }

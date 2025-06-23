@@ -25,5 +25,4 @@ public class Attachment extends LongIdAbstract {
     @Column(columnDefinition = "text")
     private String path;
 
-    private Boolean isMain;
 }

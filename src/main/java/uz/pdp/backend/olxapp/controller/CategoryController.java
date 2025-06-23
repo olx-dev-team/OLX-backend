@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import uz.pdp.backend.olxapp.payload.CategoryDTO;
+import uz.pdp.backend.olxapp.payload.CategoryReqDTO;
 import uz.pdp.backend.olxapp.service.CategoryService;
 
 import java.util.List;
@@ -30,8 +31,8 @@ public class CategoryController {
 
     @PreAuthorize(value = "hasRole('ADMIN')")
     @PostMapping("/close/v1/categories")
-    public CategoryDTO createCategory(@Valid @RequestBody CategoryDTO categoryDTO) {
-        return categoryService.save(categoryDTO);
+    public CategoryDTO createCategory(@RequestBody @Valid CategoryReqDTO categoryReqDTO) {
+        return categoryService.save(categoryReqDTO);
     }
 
 
