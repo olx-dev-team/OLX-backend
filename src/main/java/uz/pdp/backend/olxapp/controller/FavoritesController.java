@@ -1,6 +1,7 @@
 package uz.pdp.backend.olxapp.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import uz.pdp.backend.olxapp.payload.FavoriteReqDTO;
@@ -27,7 +28,9 @@ public class FavoritesController {
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "10") Integer size) {
 
-        return favoritesService.getAllFavorites(page, size);
+
+        PageDTO<FavoritesDTO> allFavorites = favoritesService.getAllFavorites(page, size);
+        return allFavorites;
 
     }
 
@@ -52,8 +55,9 @@ public class FavoritesController {
     @PostMapping
     public ResponseEntity<?> addFavorite(@RequestBody FavoriteReqDTO favoriteReqDTO) {
 
-        favoritesService.addFavorite(favoriteReqDTO);
-        return ResponseEntity.accepted().build();
+        String string = favoritesService.addFavorite(favoriteReqDTO);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(string);
     }
 
     /**
