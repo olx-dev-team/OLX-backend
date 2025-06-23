@@ -1,5 +1,6 @@
 package uz.pdp.backend.olxapp.payload;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.Email;
@@ -43,6 +44,7 @@ public class UserDTO implements Serializable {
 
     @NotBlank(message = "Password is required")
     @Size(min = 6, message = "Password must have at least {min} characters")
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
     @Email(message = "Invalid email address")
@@ -53,17 +55,17 @@ public class UserDTO implements Serializable {
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    private List<FavoritesDTO> favorites;
-
-    private List<NotificationDTO>
-            receivedNotifications;
-
-    private List<NotificationDTO> sentNotifications;
-
-    private List<ProductDTO> products;
-
-    private List<ChatDTO> sentChats;
-
-    private List<ChatDTO> receivedChats;
+//    private List<FavoritesDTO> favorites;
+//
+//    private List<NotificationDTO>
+//            receivedNotifications;
+//
+//    private List<NotificationDTO> sentNotifications;
+//
+//    private List<ProductDTO> products;
+//
+//    private List<ChatDTO> sentChats;
+//
+//    private List<ChatDTO> receivedChats;
 
 }

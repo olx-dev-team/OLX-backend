@@ -13,6 +13,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import uz.pdp.backend.olxapp.exception.*;
+import uz.pdp.backend.olxapp.exception.base.BaseException;
 import uz.pdp.backend.olxapp.payload.errors.ErrorDTO;
 import uz.pdp.backend.olxapp.payload.errors.FieldErrorDTO;
 
@@ -96,6 +97,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidImageFileException.class)
     public ResponseEntity<?> handleInvalidImageFileException(InvalidImageFileException e) {
         return buildResponse(HttpStatus.BAD_REQUEST, "invalid image file type", e.getMessage());
+    }
+
+    @ExceptionHandler(BaseException.class)
+    public ResponseEntity<?> handleBaseException(BaseException e) {
+        return buildResponse(e.getStatus(), e.getMessage());
     }
 
 

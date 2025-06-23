@@ -9,6 +9,6 @@ public interface AttachmentMapper {
 
     AttachmentDTO toDto(Attachment attachment);
 
-    Attachment fromDto(AttachmentDTO attachmentDTO);
+    Attachment toEntity(AttachmentDTO attachmentDTO);
 
 }

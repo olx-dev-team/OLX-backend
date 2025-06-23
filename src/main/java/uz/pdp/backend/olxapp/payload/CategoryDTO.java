@@ -32,7 +32,7 @@ public class CategoryDTO implements Serializable {
     private Long parentId;
 
     private List<CategoryDTO> children = new ArrayList<>();
-
-    private List<ProductDTO> products = new ArrayList<>();
+//
+//    private List<ProductDTO> products = new ArrayList<>();
 
 }
