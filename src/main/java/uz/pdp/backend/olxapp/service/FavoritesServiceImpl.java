@@ -21,6 +21,8 @@ import uz.pdp.backend.olxapp.payload.PageDTO;
 import uz.pdp.backend.olxapp.repository.FavoritesRepository;
 import uz.pdp.backend.olxapp.repository.ProductRepository;
 
+import java.util.Optional;
+
 @Service
 @AllArgsConstructor
 public class FavoritesServiceImpl implements FavoritesService {
@@ -75,7 +77,7 @@ public class FavoritesServiceImpl implements FavoritesService {
     }
 
     @Override
-    public void addFavorite(FavoriteReqDTO favoriteReqDTO) {
+    public String addFavorite(FavoriteReqDTO favoriteReqDTO) {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (!(authentication.getPrincipal() instanceof User user)) {
@@ -85,21 +87,43 @@ public class FavoritesServiceImpl implements FavoritesService {
         Product product = productRepository.findById(favoriteReqDTO.getProductId())
                 .orElseThrow(() -> new EntityNotFoundException("Product with id " + favoriteReqDTO.getProductId() + " not found", HttpStatus.NOT_FOUND));
 
-        Favorites favorites = new Favorites(
-                user,
-                product
-        );
-        favoritesRepository.save(favorites);
+        Optional<Favorites> optionalFavorite = favoritesRepository.findByUserAndProduct(user, product);
+
+        if (optionalFavorite.isPresent()) {
+
+           favoritesRepository.deleteById(optionalFavorite.get().getId());
+
+            return "Product removed from favorites";
+
+        } else {
+
+            Favorites favorites = new Favorites(
+                    user,
+                    product
+            );
+
+            favoritesRepository.save(favorites);
+            return "Product added to favorites";
+        }
 
     }
 
     @Override
     public void deleteFavorite(Long id) {
 
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (!(authentication.getPrincipal() instanceof User user)) {
+            throw new AccessDeniedException("User is not authenticated");
+        }
+
         Favorites favorites = favoritesRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Favorites with id " + id + " not found", HttpStatus.NOT_FOUND));
 
-        favoritesRepository.delete(favorites);
+        if (!favorites.getUser().getId().equals(user.getId())) {
+            throw new AccessDeniedException("You are not allowed to delete this resource");
+        }
+
+        favoritesRepository.deleteById(favorites.getId());
 
     }
 }
