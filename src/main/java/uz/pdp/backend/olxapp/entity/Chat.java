@@ -7,26 +7,30 @@ import uz.pdp.backend.olxapp.payload.LoginDTO;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
-@Entity(name = "chat")
+@Entity(name = "chats")
 public class Chat extends LongIdAbstract {
 
-    @ManyToOne
-    @JoinColumn(name = "sender_id")
-    private User sender;
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "user_one_id")
+    private User userOne; // Покупатель
 
-    @ManyToOne
-    @JoinColumn(name = "receiver_id")
-    private User receiver;
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "user_two_id")
+    private User userTwo; // Продавец (владелец продукта)
 
-    @OneToMany(mappedBy = "chat", cascade = CascadeType.ALL)
-    private List<Message> messages;
 
-    private LocalDateTime sentAt;
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id")
+    private Product product;
+
+    @OneToMany(mappedBy = "chat", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Message> messages = new ArrayList<>();
 
 }
