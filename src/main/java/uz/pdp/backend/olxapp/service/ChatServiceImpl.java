@@ -10,7 +10,7 @@ import uz.pdp.backend.olxapp.entity.Product;
 import uz.pdp.backend.olxapp.entity.User;
 import uz.pdp.backend.olxapp.exception.EntityNotFoundException;
 import uz.pdp.backend.olxapp.exception.IllegalActionException;
-import uz.pdp.backend.olxapp.mapper.ChatMapper;
+import uz.pdp.backend.olxapp.mapper.ChatMapperImpl;
 import uz.pdp.backend.olxapp.payload.ChatDTO;
 import uz.pdp.backend.olxapp.payload.CreateMessageDTO;
 import uz.pdp.backend.olxapp.payload.MessageDTO;
@@ -33,7 +33,7 @@ public class ChatServiceImpl implements ChatService {
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
     private final ChatRepository chatRepository;
-    private final ChatMapper chatMapper;
+    private final ChatMapperImpl chatMapperImpl;
 
 
     /**
@@ -74,7 +74,7 @@ public class ChatServiceImpl implements ChatService {
             return chatRepository.save(newChat);
         });
 
-        return chatMapper.toChatDTO(chat, initiatorId);
+        return chatMapperImpl.toChatDTO(chat, initiatorId);
 
 
     }
@@ -95,7 +95,7 @@ public class ChatServiceImpl implements ChatService {
         return chats
                 .stream()
                 .map(
-                        chat -> chatMapper.toChatDTO(chat, userId))
+                        chat -> chatMapperImpl.toChatDTO(chat, userId))
                 .sorted(Comparator.comparing(
 
                         chatDTO -> Optional.ofNullable(chatDTO.getLastMessage())
@@ -137,7 +137,7 @@ public class ChatServiceImpl implements ChatService {
         chat.getMessages().add(newMessage);
         chatRepository.save(chat);
 
-        return chatMapper.toMessageDTO(newMessage);
+        return chatMapperImpl.toMessageDTO(newMessage);
     }
 
     /**
@@ -169,7 +169,7 @@ public class ChatServiceImpl implements ChatService {
 
         // Возвращаем отсортированный список всех сообщений
         return chat.getMessages().stream()
-                .map(chatMapper::toMessageDTO)
+                .map(chatMapperImpl::toMessageDTO)
                 .sorted(Comparator.comparing(MessageDTO::getSentAt))
                 .collect(Collectors.toList());
     }
