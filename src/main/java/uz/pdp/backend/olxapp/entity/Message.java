@@ -6,24 +6,29 @@ import lombok.Setter;
 import uz.pdp.backend.olxapp.entity.abstractEntity.LongIdAbstract;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @Entity
-@Table(name = "message")
+@Table(name = "messages")
 public class Message extends LongIdAbstract {
-
-    @Column(nullable = false)
-    private String text;
-
-    @ManyToOne
+    // К какому чату относится сообщение
+    @ManyToOne(optional = false)
     @JoinColumn(name = "chat_id")
     private Chat chat;
 
-    @ManyToOne
+    // Кто отправил это конкретное сообщение
+    @ManyToOne(optional = false)
     @JoinColumn(name = "sender_id")
     private User sender;
 
-    private Timestamp sentAt;
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String content;
 
+    @Column(nullable = false)
+    private LocalDateTime sentAt = LocalDateTime.now();
+
+    // Очень полезный флаг для UI
+    private boolean isRead = false;
 }
