@@ -2,6 +2,8 @@ package uz.pdp.backend.olxapp.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import uz.pdp.backend.olxapp.entity.Chat;
@@ -15,6 +17,7 @@ import uz.pdp.backend.olxapp.payload.ChatDTO;
 import uz.pdp.backend.olxapp.payload.CreateMessageDTO;
 import uz.pdp.backend.olxapp.payload.MessageDTO;
 import uz.pdp.backend.olxapp.repository.ChatRepository;
+import uz.pdp.backend.olxapp.repository.MessageRepository;
 import uz.pdp.backend.olxapp.repository.ProductRepository;
 import uz.pdp.backend.olxapp.repository.UserRepository;
 
@@ -34,6 +37,7 @@ public class ChatServiceImpl implements ChatService {
     private final UserRepository userRepository;
     private final ChatRepository chatRepository;
     private final ChatMapperImpl chatMapperImpl;
+    private final MessageRepository messageRepository;
 
 
     /**
@@ -150,28 +154,26 @@ public class ChatServiceImpl implements ChatService {
      * @throws EntityNotFoundException если чат не найден.
      * @throws SecurityException       если пользователь не является участником чата.
      */
-    @Transactional // Не readOnly, так как мы можем изменять флаг isRead
-    public List<MessageDTO> getChatMessages(Long chatId, Long userId) {
+    @Transactional
+    public Page<MessageDTO> getChatMessages(Long chatId, Long userId, Pageable pageable) {
         Chat chat = chatRepository.findById(chatId)
-                .orElseThrow(() -> new EntityNotFoundException("Chat not found with id: " + chatId , HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new EntityNotFoundException("Chat not found with id: " + chatId, HttpStatus.NOT_FOUND));
 
-        // Еще одна проверка безопасности
         if (!chat.getUserOne().getId().equals(userId) && !chat.getUserTwo().getId().equals(userId)) {
             throw new SecurityException("User " + userId + " is not a participant of chat " + chatId);
         }
 
-        // Помечаем сообщения как прочитанные
-        chat.getMessages().stream()
+        // Получаем СТРАНИЦУ сообщений из репозитория
+        Page<Message> messagePage = messageRepository.findByChatIdOrderBySentAtDesc(chatId, pageable);
+
+        // Помечаем как прочитанные только те сообщения, которые мы загрузили на этой странице
+        messagePage.getContent().stream()
                 .filter(message -> !message.getSender().getId().equals(userId) && !message.isRead())
                 .forEach(message -> message.setRead(true));
+        // Spring Data JPA отследит изменения и сохранит их при коммите транзакции
 
-        chatRepository.save(chat); // Сохраняем изменения (флаги isRead)
-
-        // Возвращаем отсортированный список всех сообщений
-        return chat.getMessages().stream()
-                .map(chatMapperImpl::toMessageDTO)
-                .sorted(Comparator.comparing(MessageDTO::getSentAt))
-                .collect(Collectors.toList());
+        // Конвертируем Page<Message> в Page<MessageDTO>
+        return messagePage.map(chatMapperImpl::toMessageDTO);
     }
 
 
