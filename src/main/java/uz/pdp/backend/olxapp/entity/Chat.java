@@ -1,12 +1,12 @@
 package uz.pdp.backend.olxapp.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import uz.pdp.backend.olxapp.entity.abstractEntity.LongIdAbstract;
-import uz.pdp.backend.olxapp.payload.LoginDTO;
 
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
