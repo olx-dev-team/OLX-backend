@@ -65,10 +65,10 @@ public class User extends LongIdAbstract implements UserDetails {
     @ManyToMany(fetch = FetchType.LAZY)
     private List<Product> products;
 
-    @OneToMany(mappedBy = "sender")
+    @OneToMany(mappedBy = "userOne")
     private List<Chat> sentChats;
 
-    @OneToMany(mappedBy = "receiver")
+    @OneToMany(mappedBy = "userTwo")
     private List<Chat> receivedChats;
 
     @Override
