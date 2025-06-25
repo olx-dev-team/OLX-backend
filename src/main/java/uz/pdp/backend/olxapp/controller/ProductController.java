@@ -7,14 +7,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 import uz.pdp.backend.olxapp.payload.PageDTO;
 import uz.pdp.backend.olxapp.payload.ProductDTO;
 import uz.pdp.backend.olxapp.payload.ProductReqDTO;
 import uz.pdp.backend.olxapp.payload.ProductUpdateDTO;
 import uz.pdp.backend.olxapp.service.ProductService;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api")
