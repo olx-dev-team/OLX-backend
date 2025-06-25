@@ -15,9 +15,9 @@ public interface ProductService {
 
     ProductDTO increaseViewCount(Long id);
 
-    ProductDTO save(ProductReqDTO productDTO, List<MultipartFile> images);
+    ProductDTO save(ProductReqDTO productDTO);
 
-    ProductDTO updateProduct(Long id, ProductUpdateDTO productDTO, List<MultipartFile> images) ;
+    ProductDTO updateProduct(Long id, ProductUpdateDTO productDTO) ;
 
     void updateStatus(Long id, boolean active);
 

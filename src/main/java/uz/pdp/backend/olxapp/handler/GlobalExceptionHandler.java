@@ -104,6 +104,11 @@ public class GlobalExceptionHandler {
         return buildResponse(e.getStatus(), e.getMessage());
     }
 
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<?> handleEntityNotFoundException(EntityNotFoundException e) {
+        return buildResponse(e.getStatus(), e.getMessage());
+    }
+
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> handleGenericException(Exception e) {

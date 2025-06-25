@@ -1,4 +1,3 @@
-/*
 package uz.pdp.backend.olxapp.service;
 
 import lombok.RequiredArgsConstructor;
@@ -134,8 +133,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
 
-    */
-/**
+    /**
      * Front-end va Back-end kelishuvi qanday bo'ladi:<p>
      * Front-end'ga vazifa:<p>
      * Agar foydalanuvchi mavjud rasmni asosiy qilib tanlasa, mainImageIdentifierga shu rasmning IDsini yubor.<p>
@@ -145,8 +143,7 @@ public class ProductServiceImpl implements ProductService {
      * @param dto
      * @param newImages
      * @return "ProductDTO"
-     *//*
-
+     */
 // ProductService klassi ichida
 
     @Override
@@ -217,13 +214,11 @@ public class ProductServiceImpl implements ProductService {
     }
 
 
-    */
-/**
+    /**
      * Product'ning asosiy rasmini yangilaydigan yordamchi metod.
      * @param product Yangilanayotgan mahsulot
      * @param mainImageIdentifier Asosiy rasm bo'lishi kerak bo'lgan attachment ID'si yoki fayl nomi
-     *//*
-
+     */
     private void updateMainImage(Product product, String mainImageIdentifier) {
         if (mainImageIdentifier == null || mainImageIdentifier.isBlank()) {
             // Agar asosiy rasm belgilanmagan bo'lsa, mavjud rasmlardan birinchisini asosiy qilamiz
@@ -360,12 +355,10 @@ public class ProductServiceImpl implements ProductService {
     }
 
 
-    */
-/**
+    /**
      * Attachment ro'yxatidan bitta rasmni asosiy qilib belgilaydigan yordamchi metod.
      * Bu metodni ham save, ham update metodlarida qayta ishlatish mumkin.
-     *//*
-
+     */
     public static void saveMainImage(List<Attachment> attachments, String mainImageIdentifier, AttachmentRepository attachmentRepository) {
         if (attachments == null || attachments.isEmpty()) {
             return;
@@ -393,4 +386,3 @@ public class ProductServiceImpl implements ProductService {
         attachmentRepository.save(mainAttachmentOpt.get());
     }
 }
-*/

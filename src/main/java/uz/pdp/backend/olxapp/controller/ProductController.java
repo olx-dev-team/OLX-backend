@@ -41,20 +41,18 @@ public class ProductController {
 
     @PreAuthorize(value = "hasRole('USER')")
     @PostMapping(value = "/close/v1/products", consumes = {"multipart/form-data"})
-    public ResponseEntity<ProductDTO> createProduct(@RequestPart("product") ProductReqDTO productReqDTO,
-                                                    @RequestPart(name = "images", required = false) List<MultipartFile> images) {
+    public ResponseEntity<ProductDTO> createProduct(@ModelAttribute ProductReqDTO productReqDTO) {
 
-        ProductDTO saveProduct = productService.save(productReqDTO, images);
+        ProductDTO saveProduct = productService.save(productReqDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(saveProduct);
     }
 
     @PreAuthorize(value = "hasRole('USER')")
     @PutMapping(value = "/close/v1/products/{id}", consumes = {"multipart/form-data"})
     public ResponseEntity<ProductDTO> updateProduct(@PathVariable Long id,
-                                                    @RequestPart("product") ProductUpdateDTO productUpdateDTO,
-                                                    @RequestPart(name = "images") List<MultipartFile> images) {
+                                                    @ModelAttribute ProductUpdateDTO productUpdateDTO) {
 
-        ProductDTO updatedProduct = productService.updateProduct(id, productUpdateDTO, images);
+        ProductDTO updatedProduct = productService.updateProduct(id, productUpdateDTO);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(updatedProduct);
     }
 
