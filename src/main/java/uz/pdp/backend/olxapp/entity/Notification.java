@@ -27,4 +27,5 @@ public class Notification extends LongIdAbstract {
     @JoinColumn(name = "sender_id")
     private User sender;
 
+
 }

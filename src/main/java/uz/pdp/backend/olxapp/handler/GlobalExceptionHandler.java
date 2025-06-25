@@ -94,6 +94,12 @@ public class GlobalExceptionHandler {
 
     }
 
+    @ExceptionHandler(NotificationNotFoundException.class)
+    public ResponseEntity<?> handleFileNotFountException(NotificationNotFoundException e) {
+        return buildResponse(HttpStatus.NOT_FOUND, "notification not found", e.getMessage());
+
+    }
+
     @ExceptionHandler(InvalidImageFileException.class)
     public ResponseEntity<?> handleInvalidImageFileException(InvalidImageFileException e) {
         return buildResponse(HttpStatus.BAD_REQUEST, "invalid image file type", e.getMessage());

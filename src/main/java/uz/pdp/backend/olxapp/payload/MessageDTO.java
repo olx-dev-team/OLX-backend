@@ -29,8 +29,8 @@ public class MessageDTO implements Serializable {
     private Long id;
 
     @NotBlank(message = "Text is required")
-    private String text;
     @Size(max = 1000, message = "Text must have maximum {max} characters")
+    private String text;
 
     private Long chatId;
 
