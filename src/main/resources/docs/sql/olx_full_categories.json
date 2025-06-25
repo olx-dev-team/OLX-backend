@@ -1,162 +1,24 @@
-[
-  {
-    "id": 1,
-    "name": "Kids World",
-    "parentId": null,
-    "children": [
-      {
-        "id": 2,
-        "name": "Children's Clothing",
-        "parentId": 1,
-        "children": [
-          {
-            "id": 3,
-            "name": "Clothes for Boys",
-            "parentId": 2,
-            "children": []
-          },
-          {
-            "id": 4,
-            "name": "Clothes for Girls",
-            "parentId": 2,
-            "children": []
-          },
-          {
-            "id": 5,
-            "name": "Clothes for Newborns",
-            "parentId": 2,
-            "children": []
-          }
-        ]
-      },
-      {
-        "id": 6,
-        "name": "Children's Shoes",
-        "parentId": 1,
-        "children": []
-      },
-      {
-        "id": 7,
-        "name": "Baby Strollers",
-        "parentId": 1,
-        "children": []
-      },
-      {
-        "id": 8,
-        "name": "Child Car Seats",
-        "parentId": 1,
-        "children": []
-      },
-      {
-        "id": 9,
-        "name": "Children's Furniture",
-        "parentId": 1,
-        "children": []
-      },
-      {
-        "id": 10,
-        "name": "Toys",
-        "parentId": 1,
-        "children": []
-      },
-      {
-        "id": 11,
-        "name": "Children's Transport",
-        "parentId": 1,
-        "children": []
-      },
-      {
-        "id": 12,
-        "name": "Feeding",
-        "parentId": 1,
-        "children": []
-      },
-      {
-        "id": 13,
-        "name": "School Supplies",
-        "parentId": 1,
-        "children": []
-      },
-      {
-        "id": 14,
-        "name": "Other Children's Products",
-        "parentId": 1,
-        "children": []
-      }
-    ]
-  },
-  {
-    "id": 15,
-    "name": "Real Estate",
-    "parentId": null,
-    "children": [
-      {
-        "id": 16,
-        "name": "Apartments for Sale",
-        "parentId": 15,
-        "children": []
-      },
-      {
-        "id": 17,
-        "name": "Apartments for Rent",
-        "parentId": 15,
-        "children": []
-      },
-      {
-        "id": 18,
-        "name": "Houses",
-        "parentId": 15,
-        "children": []
-      },
-      {
-        "id": 19,
-        "name": "Land Plots",
-        "parentId": 15,
-        "children": []
-      },
-      {
-        "id": 20,
-        "name": "Commercial Property",
-        "parentId": 15,
-        "children": []
-      },
-      {
-        "id": 21,
-        "name": "Garages & Parking",
-        "parentId": 15,
-        "children": []
-      }
-    ]
-  },
-  {
-    "id": 22,
-    "name": "Transport",
-    "parentId": null,
-    "children": [
-      {
-        "id": 23,
-        "name": "Cars",
-        "parentId": 22,
-        "children": []
-      },
-      {
-        "id": 24,
-        "name": "Motorcycles",
-        "parentId": 22,
-        "children": []
-      },
-      {
-        "id": 25,
-        "name": "Trucks & Buses",
-        "parentId": 22,
-        "children": []
-      },
-      {
-        "id": 26,
-        "name": "Vehicle Parts & Accessories",
-        "parentId": 22,
-        "children": []
-      }
-    ]
-  }
-]
+{
+  "title": "Yangi nom",
+  "description": "Yangi tavsif",
+  "existingImages": [
+    {
+      "id": 12,
+      "isMain": false
+    },
+    {
+      "id": 13,
+      "isMain": true
+    }
+  ],
+  "newImages": [
+    {
+      "file": "new_image1.jpg",
+      "isMain": false
+    },
+    {
+      "file": "new_image2.jpg",
+      "isMain": false
+    }
+  ]
+}

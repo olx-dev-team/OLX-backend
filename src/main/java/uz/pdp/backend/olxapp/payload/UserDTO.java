@@ -14,7 +14,6 @@ import uz.pdp.backend.olxapp.enums.Role;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.List;
 
 
 /**

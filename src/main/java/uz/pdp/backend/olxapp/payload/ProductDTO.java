@@ -50,7 +50,7 @@ public class ProductDTO implements Serializable {
 
     private List<FavoritesDTO> favorites = new ArrayList<>();
 
-    private List<AttachmentDTO> attachments = new ArrayList<>();
+    private List<ProductImageDto> productImages = new ArrayList<>();
 
     private Long createdById;
 

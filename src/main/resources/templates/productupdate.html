@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <title>Mahsulotni tahrirlash</title>
+</head>
+<body>
+<h2>Mahsulotni tahrirlash</h2>
+
+<label>Bearer Token:</label><br>
+<input type="text" id="token" placeholder="Token kiriting" style="width: 500px;"><br><br>
+
+<label>Product ID:</label><br>
+<input type="number" id="productId"><br><br>
+
+<button onclick="loadProduct()">Ma'lumotni yuklash</button><br><br>
+
+<form id="editForm" enctype="multipart/form-data" onsubmit="submitForm(event)">
+    <label>Sarlavha (title):</label><br>
+    <input type="text" name="title" id="title"><br><br>
+
+    <label>Tavsif (description):</label><br>
+    <textarea name="description" id="description"></textarea><br><br>
+
+    <label>Narx (price):</label><br>
+    <input type="number" step="0.01" name="price" id="price"><br><br>
+
+    <label>Faolmi (active):</label>
+    <input type="checkbox" name="active" id="active"><br><br>
+
+    <label>Mavjud rasmlar (existedImages):</label><br>
+    <div id="existedImagesContainer"></div>
+    <button type="button" onclick="addExistedImage()">+ Existed Image</button><br><br>
+
+    <label>Yangi rasm yuklash (productNewImages):</label><br>
+    <div id="newImagesContainer"></div>
+    <button type="button" onclick="addNewImage()">+ New Image</button><br><br>
+
+    <button type="submit">Saqlash</button>
+</form>
+
+<br><hr>
+<h3>Server javobi:</h3>
+<pre id="response"></pre>
+
+<script>
+    let newImageIndex = 0;
+    let existedImageIndex = 0;
+
+    function addExistedImage(imageId = '', main = false) {
+        const container = document.getElementById('existedImagesContainer');
+        const div = document.createElement('div');
+        div.innerHTML = `
+            Image ID: <input type="number" name="existedImages[${existedImageIndex}].imageId" value="${imageId}">
+            Main: <input type="checkbox" name="existedImages[${existedImageIndex}].main" ${main ? 'checked' : ''}><br>`;
+        container.appendChild(div);
+        existedImageIndex++;
+    }
+
+    function addNewImage() {
+        const container = document.getElementById('newImagesContainer');
+        const div = document.createElement('div');
+        div.innerHTML = `
+            Fayl: <input type="file" name="productNewImages[${newImageIndex}].file">
+            Main: <input type="checkbox" name="productNewImages[${newImageIndex}].main"><br>`;
+        container.appendChild(div);
+        newImageIndex++;
+    }
+
+    async function loadProduct() {
+        const productId = document.getElementById('productId').value;
+        const token = document.getElementById('token').value;
+
+        const res = await fetch(`http://localhost:8080/api/open/v1/products/view/${productId}`, {
+            headers: {
+                'Authorization': 'Bearer ' + token
+            }
+        });
+
+        if (!res.ok) {
+            document.getElementById('response').textContent = "Xatolik: " + res.status;
+            return;
+        }
+
+        const data = await res.json();
+
+        document.getElementById('title').value = data.title || '';
+        document.getElementById('description').value = data.description || '';
+        document.getElementById('price').value = data.price || 0;
+        document.getElementById('active').checked = data.active || false;
+
+        document.getElementById('existedImagesContainer').innerHTML = '';
+        existedImageIndex = 0;
+        if (data.productImages) {
+            data.productImages.forEach(img => {
+                addExistedImage(img.id, img.main);
+            });
+        }
+
+        document.getElementById('newImagesContainer').innerHTML = '';
+        newImageIndex = 0;
+    }
+
+    async function submitForm(event) {
+        event.preventDefault();
+
+        const productId = document.getElementById('productId').value;
+        const token = document.getElementById('token').value;
+
+        const form = document.getElementById('editForm');
+        const formData = new FormData(form);
+
+        const response = await fetch(`http://localhost:8080/api/close/v1/products/${productId}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': 'Bearer ' + token
+            },
+            body: formData
+        });
+
+        const result = await response.json();
+        document.getElementById('response').textContent = JSON.stringify(result, null, 2);
+    }
+</script>
+</body>
+</html>
