@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 @AllArgsConstructor
@@ -25,16 +26,11 @@ public class ProductUpdateDTO {
     @PositiveOrZero(message = "Price must be positive or zero")
     private BigDecimal price;
 
-    private Long categoryId;
-
     private boolean active;
 
-    // 1. Qoldirilishi kerak bo'lgan eski rasmlarning ID'lari.
-    // Front-end o'chirilmagan barcha eski rasmlarning ID'larini shu yerga yuboradi.
-    private List<Long> keptImageIds;
+    private List<ExistedImageDTO> existedImages = new ArrayList<>();
 
-    // 2. Asosiy rasm identifikatori (BITTA MAYDON).
-    // Agar eski rasm asosiy bo'lsa -> uning ID'si (masalan, "123").
-    // Agar yangi rasm asosiy bo'lsa -> uning fayl nomi (masalan, "yangi-rasm.jpg").
-    private String mainImageIdentifier;
+    private List<ProductNewImageDTO> productNewImages = new ArrayList<>();
+
+
 }

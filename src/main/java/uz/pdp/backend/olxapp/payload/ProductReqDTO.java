@@ -26,14 +26,10 @@ public class ProductReqDTO {
     @PositiveOrZero(message = "Price must be positive or zero")
     private BigDecimal price;
 
-    private Boolean isApproved = false;
-
     private Long categoryId;
 
     private boolean active;
 
-    // 2. Asosiy rasm identifikatori (BITTA MAYDON).
-    // Agar yangi rasm asosiy bo'lsa -> uning fayl nomi (masalan, "yangi-rasm.jpg").
-    private String mainImageIdentifier;
+    private List<ProductNewImageDTO> imageDTOS;
 
 }

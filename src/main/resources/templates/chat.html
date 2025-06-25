@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Muloqot</title>
+    <link rel="stylesheet" href="/chat.css" />
+    <script src="/chat.js" defer></script>
+</head>
+<body>
+<div class="chat-container">
+    <!-- CHAP PANEL -->
+    <div class="chat-sidebar">
+        <div class="chat-tabs">
+            <button class="tab active">Sotib olaman</button>
+            <button class="tab">Sotaman</button>
+        </div>
+        <div class="chat-list" id="chatsContainer">
+            <div class="no-chats">
+                <img src="/img/chat-icon.png" alt="No messages" />
+                <h3>Xabar yo‘q</h3>
+                <p>Kim bilandir yozishsangiz, shu yerda paydo bo‘ladi.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- O‘NG PANEL -->
+    <div class="chat-main">
+        <div class="no-messages" id="noMessages">
+            <img src="/img/chat-icon.png" alt="Select message" />
+            <p>Xabarni tanlang, uni ko‘rish uchun</p>
+        </div>
+
+        <div class="messages-box hidden" id="messagesBox">
+            <div class="messages" id="messagesContainer"></div>
+            <form id="messageForm">
+                <input type="text" id="messageInput" placeholder="Xabar yozing..." required />
+                <button type="submit">Yuborish</button>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>

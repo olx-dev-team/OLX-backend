@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Product Form</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+            max-width: 600px;
+            margin: auto;
+        }
+        label {
+            font-weight: bold;
+            display: block;
+            margin-top: 15px;
+        }
+        input[type="text"],
+        input[type="number"],
+        input[type="file"],
+        textarea {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+        }
+        .image-upload {
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+        }
+        .image-box {
+            text-align: center;
+        }
+        .image-box input[type="file"] {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Yangi Mahsulot Qo‘shish</h2>
+
+<form id="productForm" enctype="multipart/form-data">
+    <label>Title</label>
+    <input type="text" name="title" required>
+
+    <label>Description</label>
+    <textarea name="description" maxlength="5000"></textarea>
+
+    <label>Price</label>
+    <input type="number" name="price" min="0" step="0.01" required>
+
+    <label>Category ID</label>
+    <input type="number" name="categoryId" required>
+
+    <label>Active</label>
+    <input type="checkbox" name="active">
+
+    <label>Images</label>
+    <div class="image-upload">
+        <div class="image-box">
+            <input type="file" name="imageDTOS[0].file" accept="image/*">
+            <label><input type="checkbox" name="imageDTOS[0].main"> isMain</label>
+        </div>
+        <div class="image-box">
+            <input type="file" name="imageDTOS[1].file" accept="image/*">
+            <label><input type="checkbox" name="imageDTOS[1].main"> isMain</label>
+        </div>
+        <div class="image-box">
+            <input type="file" name="imageDTOS[2].file" accept="image/*">
+            <label><input type="checkbox" name="imageDTOS[2].main"> isMain</label>
+        </div>
+    </div>
+
+    <button type="submit" style="margin-top:20px;">Yuborish</button>
+</form>
+
+<script>
+    // 🔐 Token va endpoint to‘g‘ridan-to‘g‘ri shu fayl ichida yoziladi:
+    const TOKEN = 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsImlhdCI6MTc1MDg1NjMzOCwiZXhwIjoxNzUwODU5OTM4fQ.mBTE97hYWbS98ntBv0FrlUhEAd2LIbE3NA51B_30GKE\n'; // bu yerga JWT tokeningizni yozing
+    const ENDPOINT = 'http://localhost:8080/api/close/v1/products'; // API endpointingizni yozing
+
+    document.getElementById('productForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const form = e.target;
+        const formData = new FormData(form);
+
+        try {
+            const response = await fetch(ENDPOINT, {
+                method: 'POST',
+                headers: {
+                    'Authorization': TOKEN
+                },
+                body: formData
+            });
+
+            const result = await response.json();
+            alert("Natija:\n" + JSON.stringify(result, null, 2));
+        } catch (error) {
+            alert("Xatolik:\n" + error);
+        }
+    });
+</script>
+
+</body>
+</html>
