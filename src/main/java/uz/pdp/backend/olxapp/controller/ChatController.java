@@ -14,6 +14,7 @@ import uz.pdp.backend.olxapp.entity.User;
 import uz.pdp.backend.olxapp.payload.ChatDTO;
 import uz.pdp.backend.olxapp.payload.CreateMessageDTO;
 import uz.pdp.backend.olxapp.payload.MessageDTO;
+import uz.pdp.backend.olxapp.payload.PageDTO;
 import uz.pdp.backend.olxapp.service.ChatService;
 
 import java.util.List;
@@ -54,7 +55,7 @@ public class ChatController {
     }
 
     @GetMapping("/{chatId}/messages")
-    public ResponseEntity<Page<MessageDTO>> getChatMessages(
+    public ResponseEntity<PageDTO<MessageDTO>> getChatMessages(
             @PathVariable Long chatId,
             @AuthenticationPrincipal User currentUser,
             // Spring автоматически создаст Pageable из параметров запроса
@@ -62,7 +63,7 @@ public class ChatController {
             @PageableDefault(size = 20, sort = "sentAt", direction = Sort.Direction.DESC) Pageable pageable) {
 
 
-        Page<MessageDTO> messages = chatService.getChatMessages(chatId, currentUser.getId(), pageable);
+        PageDTO<MessageDTO> messages = chatService.getChatMessages(chatId, currentUser.getId(), pageable);
         return ResponseEntity.ok(messages);
     }
 
