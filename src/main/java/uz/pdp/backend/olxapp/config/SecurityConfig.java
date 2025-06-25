@@ -34,6 +34,11 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
+                                "/chat.css", "/chat.js", "/chat-icon.png", "/favicon.ico",
+                                "/css/*", "/js/*", "/img/*",
+                                "/", "/login", "/register", "/logout",
+                                "/api/auth/login", "/api/auth/register",
+                                "/api/user/profile/{id}",
                                 "/api/open/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html/**",

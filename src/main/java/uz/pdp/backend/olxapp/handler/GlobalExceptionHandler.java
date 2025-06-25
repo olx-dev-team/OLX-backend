@@ -109,10 +109,15 @@ public class GlobalExceptionHandler {
         return buildResponse(e.getStatus(), e.getMessage());
     }
 
+    @ExceptionHandler(IllegalActionException.class)
+    public ResponseEntity<?> handleIllegalActionException(IllegalActionException e) {
+        return buildResponse(e.getStatus(), e.getMessage());
+    }
+
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> handleGenericException(Exception e) {
-        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Noma’lum server xatosi: " + e.getMessage());
+        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Noma’lum server xatosi: " , e.getMessage());
     }
 
 

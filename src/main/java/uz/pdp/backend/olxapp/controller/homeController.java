@@ -17,4 +17,9 @@ public class homeController {
     public String getUpdatePage(){
         return "productupdate";
     }
+
+    @GetMapping("/chat")
+    public String chat(){
+        return "chat";
+    }
 }

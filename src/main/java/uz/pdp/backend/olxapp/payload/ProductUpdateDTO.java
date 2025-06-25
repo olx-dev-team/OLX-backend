@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 @AllArgsConstructor
@@ -27,9 +28,9 @@ public class ProductUpdateDTO {
 
     private boolean active;
 
-    private List<ExistedImageDTO> existedImages;
+    private List<ExistedImageDTO> existedImages = new ArrayList<>();
 
-    private List<ProductNewImageDTO> productNewImages;
+    private List<ProductNewImageDTO> productNewImages = new ArrayList<>();
 
 
 }

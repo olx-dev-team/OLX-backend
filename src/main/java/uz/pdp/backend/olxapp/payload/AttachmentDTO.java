@@ -27,5 +27,4 @@ public class AttachmentDTO implements Serializable {
 
     private String path;
 
-    private Boolean isMain;
 }

@@ -6,9 +6,7 @@ import org.hibernate.annotations.SQLRestriction;
 import uz.pdp.backend.olxapp.entity.abstractEntity.LongIdAbstract;
 
 @Entity
-@Table(name = "product_image", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"product_id", "is_main"})
-})
+@Table(name = "product_image")
 @Getter
 @Setter
 @NoArgsConstructor
