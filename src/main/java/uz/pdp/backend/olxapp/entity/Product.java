@@ -12,7 +12,6 @@ import java.util.List;
 @NoArgsConstructor
 @Getter
 @Setter
-@ToString
 @Entity(name = "product")
 public class Product extends LongIdAbstract {
 
