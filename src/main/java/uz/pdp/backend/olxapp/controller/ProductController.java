@@ -39,6 +39,12 @@ public class ProductController {
         return productService.increaseViewCount(id);
     }
 
+    @GetMapping("/close/v1/my-products")
+    public PageDTO<ProductDTO> getUserProducts(@RequestParam(defaultValue = "0") Integer page,
+                                               @RequestParam(defaultValue = "10") Integer size) {
+        return productService.getUserProducts(page, size);
+    }
+
     @PreAuthorize(value = "hasRole('USER')")
     @PostMapping(value = "/close/v1/products", consumes = {"multipart/form-data"})
     public ResponseEntity<ProductDTO> createProduct(@ModelAttribute ProductReqDTO productReqDTO) {

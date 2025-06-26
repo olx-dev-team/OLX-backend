@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import uz.pdp.backend.olxapp.entity.Category;
+import uz.pdp.backend.olxapp.exception.ConflictException;
 import uz.pdp.backend.olxapp.exception.EntityNotFoundException;
 import uz.pdp.backend.olxapp.mapper.CategoryMapper;
 import uz.pdp.backend.olxapp.payload.CategoryDTO;
@@ -44,6 +45,11 @@ public class CategoryServiceImpl implements CategoryService {
              parentCategory = categoryRepository.findById(categoryReqDTO.getParentId())
                     .orElseThrow(() -> new EntityNotFoundException("Category not found with id: " + categoryReqDTO.getParentId(), HttpStatus.NOT_FOUND));
         }
+
+        if (categoryRepository.existsByNameIgnoreCase(categoryReqDTO.getName())) {
+            throw new ConflictException("Category name already exists: " + categoryReqDTO.getName(), HttpStatus.CONFLICT);
+        }
+
         Category category = new Category(
                 categoryReqDTO.getName(),
                 parentCategory,

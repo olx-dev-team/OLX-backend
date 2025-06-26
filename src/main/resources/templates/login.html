@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Tizimga kirish - OLX UZ</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .login-box {
+            background-color: white;
+            padding: 30px 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-box h2 {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .login-box label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .login-box input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .login-box button {
+            width: 100%;
+            padding: 12px;
+            background-color: #002f34;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .login-box button:hover {
+            background-color: #004f54;
+        }
+
+        .error-message {
+            color: red;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-box">
+    <h2>Tizimga kirish</h2>
+    <div class="error-message" id="errorMsg"></div>
+    <form id="loginForm">
+        <label for="username">Username yoki Email:</label>
+        <input type="text" id="username" name="username" required />
+
+        <label for="password">Parol:</label>
+        <input type="password" id="password" name="password" required />
+
+        <button type="submit">Kirish</button>
+    </form>
+</div>
+
+<script>
+    const form = document.getElementById("loginForm");
+    const errorMsg = document.getElementById("errorMsg");
+
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const username = document.getElementById("username").value.trim();
+        const password = document.getElementById("password").value.trim();
+
+        try {
+            const response = await fetch("http://localhost:9090/api/open/auth/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ username, password })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                errorMsg.textContent = error.message || "Login xatosi!";
+                return;
+            }
+
+            const data = await response.json();
+            // token saqlash (masalan localStorage)
+            localStorage.setItem("token", data.token);
+            // dashboard yoki home sahifaga o'tish
+            window.location.href = "/api/open/dashboard";
+        } catch (err) {
+            errorMsg.textContent = "Tarmoqqa ulanib bo‘lmadi.";
+            console.error("Login error:", err);
+        }
+    });
+</script>
+
+</body>
+</html>

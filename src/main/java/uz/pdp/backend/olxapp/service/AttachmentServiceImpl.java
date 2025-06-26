@@ -153,6 +153,17 @@ public class AttachmentServiceImpl implements AttachmentService {
         attachmentRepository.delete(attachment);
     }
 
+    @Override
+    public byte[] viewAttachment(Long id) throws IOException {
+
+        Attachment attachment = attachmentRepository.findById(id)
+                .orElseThrow(() -> new FileNotFountException("Attachment not found with id: " + id));
+
+        return Files.readAllBytes(Path.of(attachment.getPath()));
+
+
+    }
+
     private Attachment saveFileToStorage(MultipartFile file) throws AttachmentSaveException {
         try {
             String originalFilename = file.getOriginalFilename();
