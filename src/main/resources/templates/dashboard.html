@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mening E'lonlarim - OLX</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #002f34;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 22px;
+        }
+
+        header button {
+            background-color: white;
+            color: #002f34;
+            border: none;
+            padding: 10px 16px;
+            font-size: 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        header button:hover {
+            background-color: #e0e0e0;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        .products {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .product {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+            overflow: hidden;
+            transition: transform 0.2s ease;
+        }
+
+        .product:hover {
+            transform: scale(1.02);
+        }
+
+        .product img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+        }
+
+        .product-details {
+            padding: 10px 15px;
+        }
+
+        .product h3 {
+            margin: 0;
+            font-size: 18px;
+        }
+
+        .product p {
+            margin: 5px 0;
+            color: #555;
+        }
+
+        .no-products {
+            text-align: center;
+            margin-top: 50px;
+            color: #777;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+    <h1>Mening E'lonlarim</h1>
+    <button onclick="window.location.href='/api/open/create'">E'lon joylash</button>
+</header>
+
+<!-- Main Content -->
+<div class="container">
+    <div id="products" class="products"></div>
+    <div id="emptyMsg" class="no-products" style="display: none;">
+        Sizda hozircha hech qanday e'lon mavjud emas.
+    </div>
+</div>
+
+<!-- Script -->
+<script>
+    const token = localStorage.getItem("token");
+    const productsDiv = document.getElementById("products");
+    const emptyMsg = document.getElementById("emptyMsg");
+
+    async function fetchMyProducts() {
+        if (!token) {
+            emptyMsg.textContent = "Avval tizimga kiring.";
+            emptyMsg.style.display = "block";
+            return;
+        }
+
+        try {
+            const res = await fetch("http://localhost:9090/api/close/v1/my-products", {
+                headers: {
+                    "Authorization": "Bearer " + token
+                }
+            });
+
+            if (!res.ok) {
+                throw new Error("Xatolik: mahsulotlar olinmadi");
+            }
+
+            const data = await res.json();
+            const productList = data.content;
+
+            if (!productList || productList.length === 0) {
+                emptyMsg.style.display = "block";
+                return;
+            }
+
+            productList.forEach(product => {
+                const mainImage = product.productImages.find(img => img.main === true);
+                const imageUrl = mainImage
+                    ? `http://localhost:9090/api/open/v1/attachment/${mainImage.attachmentId}`
+                    : "https://via.placeholder.com/250x180.png?text=No+Image";
+
+                const div = document.createElement("div");
+                div.className = "product";
+                div.innerHTML = `
+          <img src="${imageUrl}" alt="${product.title}" />
+          <div class="product-details">
+            <h3>${product.title}</h3>
+            <p>${product.description}</p>
+            <p><strong>${product.price.toLocaleString()} so'm</strong></p>
+            <p>Ko‘rishlar: ${product.viewCounter}</p>
+          </div>
+        `;
+                productsDiv.appendChild(div);
+            });
+
+        } catch (err) {
+            emptyMsg.textContent = "Ma'lumotlarni yuklashda xatolik.";
+            emptyMsg.style.display = "block";
+            console.error(err);
+        }
+    }
+
+    // Sahifa yuklanganda mahsulotlarni olish
+    fetchMyProducts();
+</script>
+
+</body>
+</html>

@@ -65,6 +65,10 @@ public class UserServiceImpl implements UserService {
             throw new UserNameAlreadyExistException("username already exist");
         }
 
+        if (userRepository.existsByEmail(registerDto.getEmail())) {
+            throw new ConflictException("email already exist", HttpStatus.CONFLICT);
+        }
+
         User user = new User(
                 registerDto.getFirstName(),
                 registerDto.getLastName(),

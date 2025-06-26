@@ -19,11 +19,17 @@ public class AttachmentController {
     private final AttachmentService attachmentService;
 
 
-    @GetMapping("/open/v1/attachment/{id}")
+    @GetMapping("/open/v1/attachments/{id}")
     public ResponseEntity<AttachmentDTO> getAttachment(@PathVariable Long id) {
 
         return ResponseEntity.ok().body(attachmentService.getByIdAttachment(id));
 
+    }
+
+
+    @GetMapping("/open/v1/attachment/{id}")
+    public ResponseEntity<byte[]> viewAttachment(@PathVariable Long id) throws Exception {
+        return ResponseEntity.ok().body(attachmentService.viewAttachment(id));
     }
 
 

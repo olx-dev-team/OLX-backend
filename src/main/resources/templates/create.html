@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Yangi e'lon yaratish - OLX UZ</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f3f3f3;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 30px auto;
+            background-color: white;
+            border-radius: 10px;
+            padding: 30px 40px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        label {
+            display: block;
+            margin: 15px 0 5px;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+
+        .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .photo-preview {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            background-color: #f0f0f0;
+            border: 2px dashed #ccc;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .photo-preview img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: cover;
+        }
+
+        .photo-preview input {
+            display: none;
+        }
+
+        .photo-preview span {
+            color: #999;
+        }
+
+        .main-label {
+            position: absolute;
+            bottom: 5px;
+            left: 5px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            font-size: 12px;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        button {
+            width: 100%;
+            margin-top: 25px;
+            padding: 12px;
+            background-color: #002f34;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #004b4f;
+        }
+
+        .status {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .status.error {
+            color: red;
+        }
+
+        .status.success {
+            color: green;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>E'lon yaratish</h2>
+
+    <form id="productForm">
+        <label for="title">Sarlavha *</label>
+        <input type="text" id="title" name="title" required placeholder="Masalan, iPhone 13 Pro kafolat bilan" />
+
+        <label for="description">Tavsif</label>
+        <textarea id="description" name="description" rows="4" maxlength="5000" placeholder="Batafsil ma’lumot yozing..."></textarea>
+
+        <label for="price">Narxi (so'm)</label>
+        <input type="number" id="price" name="price" required min="0" />
+
+        <label for="categoryId">Kategoriya ID</label>
+        <input type="number" id="categoryId" name="categoryId" required />
+
+        <label for="active">Holati</label>
+        <select id="active" name="active">
+            <option value="true">Faol</option>
+            <option value="false">NoFaol</option>
+        </select>
+
+        <label>Rasmlar</label>
+        <div class="photo-grid" id="photoGrid">
+            <div class="photo-preview" onclick="document.getElementById('fileInput').click()">
+                <span>+ Qo‘shish</span>
+            </div>
+        </div>
+        <input type="file" id="fileInput" multiple accept="image/*" style="display:none" />
+
+        <button type="submit">E'lonni joylash</button>
+        <div id="message" class="status"></div>
+    </form>
+</div>
+
+<script>
+    const fileInput = document.getElementById("fileInput");
+    const photoGrid = document.getElementById("photoGrid");
+    const form = document.getElementById("productForm");
+    const message = document.getElementById("message");
+
+    let selectedFiles = [];
+
+    fileInput.addEventListener("change", (e) => {
+        const files = Array.from(e.target.files);
+        selectedFiles.push(...files);
+        renderPreviews();
+    });
+
+    function renderPreviews() {
+        photoGrid.innerHTML = "";
+
+        selectedFiles.forEach((file, i) => {
+            const previewDiv = document.createElement("div");
+            previewDiv.className = "photo-preview";
+
+            const img = document.createElement("img");
+            img.src = URL.createObjectURL(file);
+            previewDiv.appendChild(img);
+
+            if (i === 0) {
+                const mainLabel = document.createElement("div");
+                mainLabel.className = "main-label";
+                mainLabel.innerText = "Asosiy";
+                previewDiv.appendChild(mainLabel);
+            }
+
+            photoGrid.appendChild(previewDiv);
+        });
+
+        // Add + Qo‘shish button again
+        const addDiv = document.createElement("div");
+        addDiv.className = "photo-preview";
+        addDiv.onclick = () => fileInput.click();
+        addDiv.innerHTML = `<span>+ Qo‘shish</span>`;
+        photoGrid.appendChild(addDiv);
+    }
+
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        message.textContent = "";
+
+        const token = localStorage.getItem("token");
+        if (!token) {
+            message.className = "status error";
+            message.textContent = "Tizimga kiring.";
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("title", document.getElementById("title").value);
+        formData.append("description", document.getElementById("description").value);
+        formData.append("price", document.getElementById("price").value);
+        formData.append("categoryId", document.getElementById("categoryId").value);
+        formData.append("active", document.getElementById("active").value);
+
+        selectedFiles.forEach((file, i) => {
+            formData.append(`imageDTOS[${i}].file`, file);
+            formData.append(`imageDTOS[${i}].main`, i === 0); // Birinchi rasm asosiy
+        });
+
+        try {
+            const res = await fetch("http://localhost:9090/api/close/v1/products", {
+                method: "POST",
+                headers: {
+                    Authorization: "Bearer " + token
+                },
+                body: formData
+            });
+
+            if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err.message || "Xatolik");
+            }
+
+            message.className = "status success";
+            message.textContent = "E'lon muvaffaqiyatli joylandi!";
+            form.reset();
+            selectedFiles = [];
+            renderPreviews();
+
+        } catch (err) {
+            message.className = "status error";
+            message.textContent = err.message;
+            console.error(err);
+        }
+    });
+</script>
+
+</body>
+</html>
