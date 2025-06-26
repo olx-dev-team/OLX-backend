@@ -2,6 +2,7 @@ package uz.pdp.backend.olxapp.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.FieldNameConstants;
 import uz.pdp.backend.olxapp.entity.abstractEntity.LongIdAbstract;
 
 import java.math.BigDecimal;
@@ -13,6 +14,7 @@ import java.util.List;
 @Getter
 @Setter
 @Entity(name = "product")
+@FieldNameConstants
 public class Product extends LongIdAbstract {
 
     @Column(nullable = false)

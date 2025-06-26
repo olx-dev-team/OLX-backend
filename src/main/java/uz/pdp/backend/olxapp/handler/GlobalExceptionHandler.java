@@ -12,6 +12,8 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.servlet.NoHandlerFoundException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 import uz.pdp.backend.olxapp.exception.*;
 import uz.pdp.backend.olxapp.exception.base.BaseException;
 import uz.pdp.backend.olxapp.payload.errors.ErrorDTO;
@@ -78,6 +80,11 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.CONFLICT, "username already exist");
     }
 
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<?> handleEmailAlreadyExistException(ConflictException e) {
+        return buildResponse(e.getStatus(), e.getMessage());
+    }
+
     @ExceptionHandler(AttachmentSaveException.class)
     public ResponseEntity<?> handleAttachmentSaveException(AttachmentSaveException e) {
         return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "attachment save exception", e.getMessage());
@@ -114,10 +121,20 @@ public class GlobalExceptionHandler {
         return buildResponse(e.getStatus(), e.getMessage());
     }
 
+    @ExceptionHandler(NoHandlerFoundException.class)
+    public ResponseEntity<?> handleNoHandlerFoundException(NoHandlerFoundException e) {
+        return buildResponse(HttpStatus.NOT_FOUND, "page not found");
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<?> handleNoResourceFoundException(NoResourceFoundException e) {
+        return buildResponse(HttpStatus.NOT_FOUND, e.getBody().getTitle() + ": " + e.getResourcePath());
+    }
+
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> handleGenericException(Exception e) {
-        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Noma’lum server xatosi: " , e.getMessage());
+        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Noma’lum server xatosi: ", e.getMessage());
     }
 
 

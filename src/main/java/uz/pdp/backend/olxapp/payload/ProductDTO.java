@@ -41,7 +41,6 @@ public class ProductDTO implements Serializable {
     @PositiveOrZero(message = "Price must be positive or zero")
     private BigDecimal price;
 
-
     private Boolean isApproved = false;
 
     private Integer viewCounter = 0;

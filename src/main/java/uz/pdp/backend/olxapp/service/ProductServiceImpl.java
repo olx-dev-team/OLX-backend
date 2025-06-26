@@ -311,4 +311,32 @@ public class ProductServiceImpl implements ProductService {
         productRepository.save(product);
 
     }
+
+    @Override
+    public PageDTO<ProductDTO> getUserProducts(Integer page, Integer size) {
+
+        Sort sort = Sort.by(LongIdAbstract.Fields.id);
+        PageRequest pageRequest = PageRequest.of(page, size, sort);
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (!(authentication.getPrincipal() instanceof User user)) {
+            throw new AccessDeniedException("User is not authenticated");
+        }
+
+        Page<Product> byCreatedBy = productRepository.findByCreatedBy(user, pageRequest);
+
+        return new PageDTO<>(
+                byCreatedBy.getContent().stream().map(productMapper::toDto).toList(),
+                byCreatedBy.getNumber(),
+                byCreatedBy.getSize(),
+                byCreatedBy.getTotalElements(),
+                byCreatedBy.getTotalPages(),
+                byCreatedBy.isLast(),
+                byCreatedBy.isFirst(),
+                byCreatedBy.getNumberOfElements(),
+                byCreatedBy.isEmpty()
+        );
+
+
+    }
 }
