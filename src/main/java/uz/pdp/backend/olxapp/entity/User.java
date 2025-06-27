@@ -1,13 +1,15 @@
 package uz.pdp.backend.olxapp.entity;
 
 import jakarta.persistence.*;
-import jakarta.persistence.CascadeType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
-import org.hibernate.annotations.*;
+import org.hibernate.annotations.Check;
+import org.hibernate.annotations.Checks;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.Where;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,7 +18,6 @@ import uz.pdp.backend.olxapp.enums.Role;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Entity(name = "users")
 @Getter
