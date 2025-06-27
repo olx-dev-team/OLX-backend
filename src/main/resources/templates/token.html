@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Parolni Tiklash So'rovi</title>
+    <style type="text/css">
+        body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+        table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+        img { -ms-interpolation-mode: bicubic; }
+        img { border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; }
+        table { border-collapse: collapse !important; }
+        body { height: 100% !important; margin: 0 !important; padding: 0 !important; width: 100% !important; }
+        a[x-apple-data-detectors] {
+            color: inherit !important;
+            text-decoration: none !important;
+            font-size: inherit !important;
+            font-family: inherit !important;
+            font-weight: inherit !important;
+            line-height: inherit !important;
+        }
+        @media screen and (max-width: 600px) {
+            .container {
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+        }
+    </style>
+</head>
+<body style="background-color: #f4f4f4; margin: 0 !important; padding: 0 !important;">
+
+<!-- Asosiy quti -->
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+    <tr>
+        <td bgcolor="#f4f4f4" align="center" style="padding: 10px 15px 30px 15px;">
+            <!--[if (gte mso 9)|(IE)]>
+            <table align="center" border="0" cellspacing="0" cellpadding="0" width="600">
+                <tr>
+                    <td align="center" valign="top" width="600">
+            <![endif]-->
+            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px;" class="container">
+                <!-- LOGO -->
+                <tr>
+                    <td align="center" valign="top" style="padding: 40px 10px 40px 10px;">
+                        <a href="https://olx.uz" target="_blank">
+                            <!-- O'ZINGIZNING LOGOTIPINGIZGA HAVOLANI SHU YERGA QO'YING -->
+                            <img alt="Logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Olx_logo.svg/2560px-Olx_logo.svg.png" width="120" style="display: block; width: 120px; max-width: 120px; min-width: 120px; font-family: 'Arial', sans-serif; color: #ffffff; font-size: 18px;" border="0">
+                        </a>
+                    </td>
+                </tr>
+                <!-- ASOSIY KONTENT -->
+                <tr>
+                    <td bgcolor="#ffffff" align="center" style="padding: 40px 30px 20px 30px; border-radius: 4px 4px 0px 0px;">
+                        <h1 style="font-size: 28px; font-weight: bold; margin: 0; font-family: 'Arial', sans-serif; color: #111111;">Parolni tiklash</h1>
+                    </td>
+                </tr>
+                <tr>
+                    <td bgcolor="#ffffff" align="left" style="padding: 0px 30px 20px 30px; color: #666666; font-family: 'Arial', sans-serif; font-size: 16px; font-weight: 400; line-height: 25px;">
+                        <p style="margin: 0;">Salom, {{ foydalanuvchi_ismi }}!</p>
+                        <p style="margin: 20px 0 0 0;">Sizning akkauntingiz uchun parolni tiklash so'rovi kelib tushdi. Parolingizni yangilash uchun quyidagi tugmani bosing.</p>
+                    </td>
+                </tr>
+                <!-- TUGMA (CTA) -->
+                <tr>
+                    <td bgcolor="#ffffff" align="left">
+                        <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                            <tr>
+                                <td bgcolor="#ffffff" align="center" style="padding: 20px 30px 40px 30px;">
+                                    <table border="0" cellspacing="0" cellpadding="0">
+                                        <tr>
+                                            <!-- Parolni tiklash tugmasi -->
+                                            <td align="center" style="border-radius: 3px;" bgcolor="#002f34">
+                                                <!-- PAROLNI TIKLASH TOKENI BILAN HAVOLANI SHU YERGA QO'YING -->
+                                                <a href="{{ parolni_tiklash_havolasi }}" target="_blank" style="font-size: 18px; font-family: Arial, sans-serif; color: #ffffff; text-decoration: none; color: #ffffff; text-decoration: none; padding: 15px 35px; border-radius: 5px; border: 1px solid #002f34; display: inline-block;">Parolni Tiklash</a>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <!-- Agar tugma ishlamasa -->
+                <tr>
+                    <td bgcolor="#ffffff" align="left" style="padding: 0px 30px 20px 30px; color: #666666; font-family: 'Arial', sans-serif; font-size: 16px; font-weight: 400; line-height: 25px;">
+                        <p style="margin: 0;">Agar yuqoridagi tugma ishlamasa, quyidagi havolani nusxalab, brauzeringizning manzil qatoriga joylashtiring:</p>
+                        <p style="margin: 10px 0 0 0;">
+                            <!-- HAVOLANI BU YERGA HAM QO'YING -->
+                            <a href="{{ parolni_tiklash_havolasi }}" target="_blank" style="color: #002f34; word-break: break-all;">{{ parolni_tiklash_havolasi }}</a>
+                        </p>
+                    </td>
+                </tr>
+                <!-- Xavfsizlik eslatmasi -->
+                <tr>
+                    <td bgcolor="#ffffff" align="left" style="padding: 0px 30px 40px 30px; border-radius: 0px 0px 4px 4px; color: #666666; font-family: 'Arial', sans-serif; font-size: 14px; font-weight: 400; line-height: 25px;">
+                        <p style="margin: 0;">Agar bu so'rovni siz yubormagan bo'lsangiz, ushbu xatni e'tiborsiz qoldiring. Sizning hisobingiz xavfsizlikda qoladi.</p>
+                        <p style="margin: 10px 0 0 0;">Bu havola <strong>24 soat</strong> davomida amal qiladi.</p>
+                    </td>
+                </tr>
+                <!-- FOOTER (Quyi qism) -->
+                <tr>
+                    <td bgcolor="#f4f4f4" align="center" style="padding: 20px 10px 20px 10px; color: #888888; font-family: 'Arial', sans-serif; font-size: 12px; line-height: 18px;">
+                        <p style="margin: 0;">Siz bu xabarni akkauntingiz uchun parolni tiklash so'rovi yuborilganligi sababli oldingiz.</p>
+                        <p style="margin: 5px 0;">© {{ yil }} OLX. Barcha huquqlar himoyalangan.</p>
+                    </td>
+                </tr>
+            </table>
+            <!--[if (gte mso 9)|(IE)]>
+            </td>
+            </tr>
+            </table>
+            <![endif]-->
+        </td>
+    </tr>
+</table>
+</body>
+</html>

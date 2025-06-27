@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 @Checks({
         @Check(name = "check_email", constraints = "email LIKE '%@%'")
 })
-@Where(clause = "active=true")
+@SQLRestriction(value = "active=true")
 @FieldNameConstants
 public class User extends LongIdAbstract implements UserDetails {
 

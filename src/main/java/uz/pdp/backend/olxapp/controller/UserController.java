@@ -7,7 +7,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import uz.pdp.backend.olxapp.config.JwtService;
 import uz.pdp.backend.olxapp.payload.*;
@@ -20,27 +19,31 @@ public class UserController {
 
     private final UserService userService;
     private final JwtService jwtService;
-    private final PasswordEncoder passwordEncoder;
 
     @PreAuthorize(value = "hasAnyRole('ADMIN')")
     @GetMapping("/close/v1/users")
     public ResponseEntity<?> getAllUsers(@RequestParam(defaultValue = "0") int page,
                                          @RequestParam(defaultValue = "10") int size) {
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
-
         PageDTO<UserDTO> userDTOPage = userService.getAll(page, size);
         return ResponseEntity.ok(userDTOPage);
+    }
+
+    @PreAuthorize(value = "hasAnyRole('ADMIN')")
+    @GetMapping("/close/v1/users/inactive")
+    public PageDTO<?> getAllInactiveUsers(@RequestParam Integer page,
+                                          @RequestParam Integer size){
+        return userService.getAllInactive(page,size);
+    }
+
+    @GetMapping("/open/v1/users/changed/{id}")
+    public void changeUserRole(@PathVariable Long id,@RequestBody ChangeUserRole changeUserRole){
+        userService.changeUserRole(id,changeUserRole);
     }
 
     @PreAuthorize(value = "hasAnyRole('USER','ADMIN')")
     @GetMapping("/close/v1/users/{id}")
     public ResponseEntity<?> getUserById(@PathVariable Long id) {
-
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
 
         UserDTO userDTO = userService.getById(id);
         return ResponseEntity.ok(userDTO);
@@ -70,6 +73,24 @@ public class UserController {
         UserDTO updatedUser = userService.updatePassword(updateUserPassword, id);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(updatedUser);
 
+    }
+
+    @PutMapping("/open/v1/users/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody @Valid ResetPasswordDTO resetPasswordDTO) {
+        ApiResponse apiResponse = userService.resetPassword(resetPasswordDTO);
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @PostMapping("/open/v1/users/reset-password/token")
+    public ResponseEntity<?> resetPasswordByToken(@RequestBody @Valid TokenDTO resetPasswordByTokenDTO) {
+        TokenDTO tokenDTO = userService.resetPasswordByToken(resetPasswordByTokenDTO);
+        return ResponseEntity.ok(tokenDTO);
+    }
+
+    @PostMapping("/open/v1/users/reset-password/new-password")
+    public ResponseEntity<?> changeNewPassword(@RequestBody @Valid NewPasswordDTO newPassword) {
+        userService.changeNewPassword(newPassword);
+        return ResponseEntity.ok("Successfully changed your password");
     }
 
 

@@ -30,7 +30,7 @@ public class TestController {
 
     @GetMapping
     void test() {
-        importRecursiveJsonToDb("src/main/resources/docs/sql/olx_full_categories.json");
+//        importRecursiveJsonToDb("src/main/resources/docs/sql/olx_full_categories.json");
     }
 
 
