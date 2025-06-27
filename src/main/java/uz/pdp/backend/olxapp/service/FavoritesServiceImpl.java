@@ -21,6 +21,8 @@ import uz.pdp.backend.olxapp.payload.PageDTO;
 import uz.pdp.backend.olxapp.repository.FavoritesRepository;
 import uz.pdp.backend.olxapp.repository.ProductRepository;
 
+import java.util.Optional;
+
 @Service
 @AllArgsConstructor
 public class FavoritesServiceImpl implements FavoritesService {
@@ -85,11 +87,14 @@ public class FavoritesServiceImpl implements FavoritesService {
         Product product = productRepository.findById(favoriteReqDTO.getProductId())
                 .orElseThrow(() -> new EntityNotFoundException("Product with id " + favoriteReqDTO.getProductId() + " not found", HttpStatus.NOT_FOUND));
 
-        Favorites favorites = new Favorites(
-                user,
-                product
-        );
-        favoritesRepository.save(favorites);
+        Optional<Favorites> existingFavorite = favoritesRepository.findByUserIdAndProductId(user.getId(), product.getId());
+
+        if (existingFavorite.isPresent()) {
+            favoritesRepository.delete(existingFavorite.get());
+        } else {
+            Favorites favorite = new Favorites(user, product);
+            favoritesRepository.save(favorite);
+        }
 
     }
 
@@ -98,6 +103,14 @@ public class FavoritesServiceImpl implements FavoritesService {
 
         Favorites favorites = favoritesRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Favorites with id " + id + " not found", HttpStatus.NOT_FOUND));
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (!(authentication.getPrincipal() instanceof User user)) {
+            throw new AccessDeniedException("User is not authenticated");
+        }
+        if (!favorites.getUser().getId().equals(user.getId())) {
+            throw new AccessDeniedException("You are not allowed to access this resource");
+        }
 
         favoritesRepository.delete(favorites);
 

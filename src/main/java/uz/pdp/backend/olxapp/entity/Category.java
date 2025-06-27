@@ -3,9 +3,8 @@ package uz.pdp.backend.olxapp.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
-import org.hibernate.annotations.DialectOverride;
 import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.Where;
+import org.hibernate.annotations.SQLRestriction;
 import uz.pdp.backend.olxapp.entity.abstractEntity.LongIdAbstract;
 
 import java.util.ArrayList;
@@ -20,8 +19,8 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-@SQLDelete(sql = "UPDATE product SET active = false WHERE id = ?")
-@Where(clause = "active=true")
+@SQLDelete(sql = "UPDATE category SET active = false WHERE id = ?")
+@SQLRestriction(value = "active=true")
 @FieldNameConstants
 public class Category extends LongIdAbstract {
 

@@ -71,7 +71,7 @@
         const productId = document.getElementById('productId').value;
         const token = document.getElementById('token').value;
 
-        const res = await fetch(`http://localhost:8080/api/open/v1/products/view/${productId}`, {
+        const res = await fetch(`http://localhost:9090/api/open/v1/products/view/${productId}`, {
             headers: {
                 'Authorization': 'Bearer ' + token
             }
@@ -110,7 +110,7 @@
         const form = document.getElementById('editForm');
         const formData = new FormData(form);
 
-        const response = await fetch(`http://localhost:8080/api/close/v1/products/${productId}`, {
+        const response = await fetch(`http://localhost:90900/api/close/v1/products/${productId}`, {
             method: 'PUT',
             headers: {
                 'Authorization': 'Bearer ' + token

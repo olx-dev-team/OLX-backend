@@ -7,14 +7,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 import uz.pdp.backend.olxapp.payload.PageDTO;
 import uz.pdp.backend.olxapp.payload.ProductDTO;
 import uz.pdp.backend.olxapp.payload.ProductReqDTO;
 import uz.pdp.backend.olxapp.payload.ProductUpdateDTO;
 import uz.pdp.backend.olxapp.service.ProductService;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api")
@@ -39,13 +36,38 @@ public class ProductController {
         return productService.increaseViewCount(id);
     }
 
+    /**
+     * user ning approved == true va statusi active == true bo'lganlarini chiqaradi
+     *
+     * @param page
+     * @param size
+     * @return
+     */
     @GetMapping("/close/v1/my-products")
-    public PageDTO<ProductDTO> getUserProducts(@RequestParam(defaultValue = "0") Integer page,
-                                               @RequestParam(defaultValue = "10") Integer size) {
-        return productService.getUserProducts(page, size);
+    public PageDTO<ProductDTO> getUserProductsIsApprovedTrue(@RequestParam(defaultValue = "0") Integer page,
+                                                             @RequestParam(defaultValue = "10") Integer size) {
+        return productService.getUserProductsIsApprovedTrue(page, size);
     }
 
-    @PreAuthorize(value = "hasRole('USER')")
+    @GetMapping("/close/v1/products/waiting")
+    public PageDTO<ProductDTO> getWaitingProducts(@RequestParam(defaultValue = "0") Integer page,
+                                                  @RequestParam(defaultValue = "10") Integer size) {
+        return productService.getWaitingProducts(page, size);
+    }
+
+    @GetMapping("/close/v1/products/inactive")
+    public PageDTO<ProductDTO> getInactiveProducts(@RequestParam(defaultValue = "0") Integer page,
+                                                  @RequestParam(defaultValue = "10") Integer size) {
+        return productService.getInactiveProducts(page, size);
+    }
+
+    @GetMapping("/close/v1/products/rejected")
+    public PageDTO<ProductDTO> getRejectedProducts(@RequestParam(defaultValue = "0") Integer page,
+                                                   @RequestParam(defaultValue = "10") Integer size) {
+        return productService.getRejectedProducts(page, size);
+    }
+
+    @PreAuthorize(value = "hasAnyRole('USER','ADMIN')")
     @PostMapping(value = "/close/v1/products", consumes = {"multipart/form-data"})
     public ResponseEntity<ProductDTO> createProduct(@ModelAttribute ProductReqDTO productReqDTO) {
 
@@ -53,7 +75,7 @@ public class ProductController {
         return ResponseEntity.status(HttpStatus.CREATED).body(saveProduct);
     }
 
-    @PreAuthorize(value = "hasRole('USER')")
+    @PreAuthorize(value = "hasAnyRole('ADMIN','USER')")
     @PutMapping(value = "/close/v1/products/{id}", consumes = {"multipart/form-data"})
     public ResponseEntity<ProductDTO> updateProduct(@PathVariable Long id,
                                                     @ModelAttribute ProductUpdateDTO productUpdateDTO) {
@@ -83,13 +105,5 @@ public class ProductController {
         return ResponseEntity.ok().build();
 
     }
-
-    @PreAuthorize(value = "hasRole('ADMIN')")
-    @PatchMapping("/close/v1/products/{id}/approve")
-    public void approveProduct(@PathVariable Long id) {
-        productService.approveProduct(id);
-    }
-
-
 }
 

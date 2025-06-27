@@ -12,16 +12,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import uz.pdp.backend.olxapp.entity.*;
+import uz.pdp.backend.olxapp.entity.abstractEntity.AbstractEntity;
 import uz.pdp.backend.olxapp.entity.abstractEntity.LongIdAbstract;
 import uz.pdp.backend.olxapp.enums.Role;
-import uz.pdp.backend.olxapp.exception.EntityNotFoundException;
+import uz.pdp.backend.olxapp.enums.Status;
 import uz.pdp.backend.olxapp.exception.IllegalActionException;
-import uz.pdp.backend.olxapp.mapper.AttachmentMapper;
 import uz.pdp.backend.olxapp.mapper.ProductMapper;
 import uz.pdp.backend.olxapp.payload.*;
 import uz.pdp.backend.olxapp.repository.AttachmentRepository;
 import uz.pdp.backend.olxapp.repository.CategoryRepository;
-import uz.pdp.backend.olxapp.repository.ProductImageRepository;
 import uz.pdp.backend.olxapp.repository.ProductRepository;
 
 import java.util.*;
@@ -34,17 +33,15 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
     private final AttachmentService attachmentService;
-    private final AttachmentMapper attachmentMapper;
     private final CategoryRepository categoryRepository;
     private final AttachmentRepository attachmentRepository;
-    private final ProductImageRepository productImageRepository;
 
     @Override
     public PageDTO<ProductDTO> read(Integer page, Integer size) {
         Sort sort = Sort.by(LongIdAbstract.Fields.id);
         PageRequest pageRequest = PageRequest.of(page, size, sort);
 
-        Page<Product> productPage = productRepository.findAll(pageRequest);
+        Page<Product> productPage = productRepository.findAllByIsApprovedTrue(pageRequest);
 
         return new PageDTO<>(
                 productPage.getContent().stream().map(productMapper::toDto).toList(),
@@ -62,8 +59,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductDTO read(Long id) {
 
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + id, HttpStatus.NOT_FOUND));
+        Product product = productRepository.findByIdAndIsApprovedTrue(id);
 
         return productMapper.toDto(product);
 
@@ -71,8 +67,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ProductDTO increaseViewCount(Long id) {
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + id, HttpStatus.NOT_FOUND));
+        Product product = productRepository.findByIdAndIsApprovedTrue(id);
 
         product.setViewCounter(product.getViewCounter() + 1);
         return productMapper.toDto(productRepository.save(product));
@@ -85,8 +80,7 @@ public class ProductServiceImpl implements ProductService {
     public ProductDTO save(ProductReqDTO productReqDTO) {
 
 
-        Category category = categoryRepository.findById(productReqDTO.getCategoryId())
-                .orElseThrow(() -> new EntityNotFoundException("Category not found with id: " + productReqDTO.getCategoryId(), HttpStatus.NOT_FOUND));
+        Category category = categoryRepository.findByIdOrThrow(productReqDTO.getCategoryId());
 
         if (!category.getChildren().isEmpty()) {
             throw new IllegalArgumentException("Category has child categories");
@@ -136,8 +130,7 @@ public class ProductServiceImpl implements ProductService {
 
                 // Attachment saqlaymiz
                 AttachmentDTO attachmentDTO = attachmentService.upload(file); // bu DTO ichida ID bo'lishi kerak
-                Attachment attachment = attachmentRepository.findById(attachmentDTO.getId())
-                        .orElseThrow(() -> new RuntimeException("Attachment not found"));
+                Attachment attachment = attachmentRepository.findByIdOrElseTrow(attachmentDTO.getId());
 
                 // ProductImage ni yaratamiz
                 ProductImage image = new ProductImage();
@@ -151,22 +144,19 @@ public class ProductServiceImpl implements ProductService {
 
 
         // 3. ProductDTO qaytarish
-        return productMapper.toDto(product); // yoki qo‘lda to‘ldiring
+        return productMapper.toDto(product);
     }
 
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ProductDTO updateProduct(Long productId, ProductUpdateDTO productUpdateDTO) {
-        // 1. Mahsulotni bazadan topamiz
-        Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + productId, HttpStatus.NOT_FOUND));
 
-        // 2. NULL'dan himoyalangan ro'yxatlarni olish
+        Product product = productRepository.findByIdAndIsApprovedTrue(productId);
+
         List<ExistedImageDTO> existedImages = Optional.ofNullable(productUpdateDTO.getExistedImages()).orElse(Collections.emptyList());
         List<ProductNewImageDTO> newImages = Optional.ofNullable(productUpdateDTO.getProductNewImages()).orElse(Collections.emptyList());
 
-        // 3. SIZNING YANGI VALIDATSIYANGIZ (to'g'rilangan)
         if (existedImages.size() + newImages.size() > 8) {
             throw new IllegalActionException("Maximum 8 images are allowed.", HttpStatus.BAD_REQUEST);
         }
@@ -180,22 +170,20 @@ public class ProductServiceImpl implements ProductService {
                 .count();
 
         if (isMainCountInExistingImages + isMainCountInNewImages != 1) {
-            throw new IllegalActionException("One main image should be selected", HttpStatus.BAD_REQUEST); // Agar asosiy rasm soni 1 dan katta bo'lsa, hatolikni yuz beradigan yer
+            throw new IllegalActionException("One main image should be selected", HttpStatus.BAD_REQUEST);
         }
 
         product.getProductImages().forEach(image -> image.setMain(Boolean.FALSE));
 
         if (!newImages.isEmpty()) {
-            // Yangi rasmni yuklash uchun kodlar
             for (ProductNewImageDTO productNewImage : productUpdateDTO.getProductNewImages()) {
 
                 MultipartFile file = productNewImage.getFile();
                 AttachmentDTO upload = attachmentService.upload(file);
-                Attachment attachment = attachmentRepository.findById(upload.getId())
-                        .orElseThrow(() -> new EntityNotFoundException("Attachment not found", HttpStatus.NOT_FOUND));
+                Attachment attachment = attachmentRepository.findByIdOrElseTrow(upload.getId());
 
                 if (Boolean.TRUE.equals(productNewImage.getMain())) {
-                    product.getProductImages().forEach(image -> image.setMain(Boolean.FALSE)); // Barchasi asosiy emas
+                    product.getProductImages().forEach(image -> image.setMain(Boolean.FALSE));
                     product.getProductImages().add(new ProductImage(product, attachment, Boolean.TRUE));
                 } else {
                     product.getProductImages().add(new ProductImage(product, attachment, Boolean.FALSE));
@@ -222,12 +210,11 @@ public class ProductServiceImpl implements ProductService {
             }
         });
 
-        // 2. Xavfsizlik tekshiruvi
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (!(authentication.getPrincipal() instanceof User user)) {
             throw new AccessDeniedException("User is not authenticated");
         }
-        if (!product.getCreatedBy().getId().equals(user.getId())) {
+        if (!product.getCreatedBy().getId().equals(user.getId()) || user.getRole().equals(Role.ADMIN)) {
             throw new AccessDeniedException("You are not the owner of this product");
         }
 
@@ -236,12 +223,11 @@ public class ProductServiceImpl implements ProductService {
         product.setPrice(productUpdateDTO.getPrice());
         product.setActive(productUpdateDTO.isActive());
         product.setIsApproved(false);
+        product.setStatus(Status.PENDING_REVIEW);
 
 
-        // 5. O'zgarishlarni saqlaymiz
         Product updatedProduct = productRepository.save(product);
 
-        // 6. Natijani DTO ko'rinishida qaytaramiz
         return productMapper.toDto(updatedProduct);
     }
 
@@ -250,8 +236,7 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     public void updateStatus(Long id, boolean active) {
 
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + id, HttpStatus.NOT_FOUND));
+        Product product = productRepository.findByIdAndIsApprovedTrue(id);
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication.getPrincipal() instanceof User user) {
@@ -274,8 +259,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public void deleteProduct(Long id) {
 
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + id, HttpStatus.NOT_FOUND));
+        Product product = productRepository.findByIdAndIsApprovedTrue(id);
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (!(authentication.getPrincipal() instanceof User user)) {
             throw new AccessDeniedException("User is not authenticated");
@@ -283,37 +267,14 @@ public class ProductServiceImpl implements ProductService {
         if (!user.getId().equals(product.getCreatedBy().getId())) {
             throw new AccessDeniedException("You are not the owner of this product");
         }
-//        for (Attachment attachment : product.getAttachments()) {
-//
-//            attachmentService.deleteById(attachment.getId());
-//
-//        }
 
         productRepository.delete(product);
 
     }
 
-    @Override
-    public void approveProduct(Long id) {
-
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + id, HttpStatus.NOT_FOUND));
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (!(authentication.getPrincipal() instanceof User user)) {
-            throw new AccessDeniedException("User is not authenticated");
-        }
-        if (!user.getRole().equals(Role.ADMIN)) {
-            throw new AccessDeniedException("Only admins can approve products");
-        }
-
-        product.setIsApproved(true);
-        productRepository.save(product);
-
-    }
 
     @Override
-    public PageDTO<ProductDTO> getUserProducts(Integer page, Integer size) {
+    public PageDTO<ProductDTO> getUserProductsIsApprovedTrue(Integer page, Integer size) {
 
         Sort sort = Sort.by(LongIdAbstract.Fields.id);
         PageRequest pageRequest = PageRequest.of(page, size, sort);
@@ -323,7 +284,7 @@ public class ProductServiceImpl implements ProductService {
             throw new AccessDeniedException("User is not authenticated");
         }
 
-        Page<Product> byCreatedBy = productRepository.findByCreatedBy(user, pageRequest);
+        Page<Product> byCreatedBy = productRepository.findByCreatedByAndIsApprovedAndActive(user, true, true, pageRequest);
 
         return new PageDTO<>(
                 byCreatedBy.getContent().stream().map(productMapper::toDto).toList(),
@@ -335,6 +296,90 @@ public class ProductServiceImpl implements ProductService {
                 byCreatedBy.isFirst(),
                 byCreatedBy.getNumberOfElements(),
                 byCreatedBy.isEmpty()
+        );
+    }
+
+    @Override
+    public PageDTO<ProductDTO> getWaitingProducts(Integer page, Integer size) {
+
+        Sort sort = Sort.by(AbstractEntity.Fields.updatedAt);
+        PageRequest pageRequest = PageRequest.of(page, size, sort);
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (!(authentication.getPrincipal() instanceof User user)) {
+            throw new AccessDeniedException("User is not authenticated");
+        }
+
+        Page<Product> byCreatedBy = productRepository.findByCreatedByAndIsApprovedAndActive(user, false, true, pageRequest);
+
+        return new PageDTO<>(
+                byCreatedBy.getContent().stream().map(productMapper::toDto).toList(),
+                byCreatedBy.getNumber(),
+                byCreatedBy.getSize(),
+                byCreatedBy.getTotalElements(),
+                byCreatedBy.getTotalPages(),
+                byCreatedBy.isLast(),
+                byCreatedBy.isFirst(),
+                byCreatedBy.getNumberOfElements(),
+                byCreatedBy.isEmpty()
+        );
+
+    }
+
+    @Override
+    public PageDTO<ProductDTO> getInactiveProducts(Integer page, Integer size) {
+
+        Sort sort = Sort.by(AbstractEntity.Fields.updatedAt);
+        PageRequest pageRequest = PageRequest.of(page, size, sort);
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (!(authentication.getPrincipal() instanceof User user)) {
+            throw new AccessDeniedException("User is not authenticated");
+        }
+
+        Page<Product> byCreatedBy = productRepository.findByCreatedByAndIsApprovedAndActive(user, true, false, pageRequest);
+
+        return new PageDTO<>(
+                byCreatedBy.getContent().stream().map(productMapper::toDto).toList(),
+                byCreatedBy.getNumber(),
+                byCreatedBy.getSize(),
+                byCreatedBy.getTotalElements(),
+                byCreatedBy.getTotalPages(),
+                byCreatedBy.isLast(),
+                byCreatedBy.isFirst(),
+                byCreatedBy.getNumberOfElements(),
+                byCreatedBy.isEmpty()
+        );
+
+    }
+
+    @Override
+    public PageDTO<ProductDTO> getRejectedProducts(Integer page, Integer size) {
+
+        Sort sort = Sort.by(AbstractEntity.Fields.updatedAt);
+        PageRequest pageRequest = PageRequest.of(page, size, sort);
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (!(authentication.getPrincipal() instanceof User user)) {
+            throw new AccessDeniedException("User is not authenticated");
+        }
+
+        Page<Product> rejectedProducts = productRepository.findByCreatedByAndStatus(
+                user,
+                Status.REJECTED,
+                pageRequest
+        );
+
+        return new PageDTO<>(
+                rejectedProducts.getContent().stream().map(productMapper::toDto).toList(),
+                rejectedProducts.getNumber(),
+                rejectedProducts.getSize(),
+                rejectedProducts.getTotalElements(),
+                rejectedProducts.getTotalPages(),
+                rejectedProducts.isLast(),
+                rejectedProducts.isFirst(),
+                rejectedProducts.getNumberOfElements(),
+                rejectedProducts.isEmpty()
         );
 
 
