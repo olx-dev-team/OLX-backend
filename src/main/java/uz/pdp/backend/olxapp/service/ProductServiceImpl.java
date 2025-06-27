@@ -16,12 +16,10 @@ import uz.pdp.backend.olxapp.entity.abstractEntity.LongIdAbstract;
 import uz.pdp.backend.olxapp.enums.Role;
 import uz.pdp.backend.olxapp.exception.EntityNotFoundException;
 import uz.pdp.backend.olxapp.exception.IllegalActionException;
-import uz.pdp.backend.olxapp.mapper.AttachmentMapper;
 import uz.pdp.backend.olxapp.mapper.ProductMapper;
 import uz.pdp.backend.olxapp.payload.*;
 import uz.pdp.backend.olxapp.repository.AttachmentRepository;
 import uz.pdp.backend.olxapp.repository.CategoryRepository;
-import uz.pdp.backend.olxapp.repository.ProductImageRepository;
 import uz.pdp.backend.olxapp.repository.ProductRepository;
 
 import java.util.*;
@@ -34,10 +32,9 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
     private final AttachmentService attachmentService;
-    private final AttachmentMapper attachmentMapper;
     private final CategoryRepository categoryRepository;
     private final AttachmentRepository attachmentRepository;
-    private final ProductImageRepository productImageRepository;
+
 
     @Override
     public PageDTO<ProductDTO> read(Integer page, Integer size) {
