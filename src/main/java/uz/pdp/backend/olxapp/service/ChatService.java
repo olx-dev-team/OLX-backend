@@ -18,5 +18,4 @@ public interface ChatService {
     MessageDTO sendMessage(Long chatId, Long senderId, CreateMessageDTO createMessageDTO);
 
     PageDTO<MessageDTO> getChatMessages(Long chatId, Long userId, Pageable pageable);
-
 }

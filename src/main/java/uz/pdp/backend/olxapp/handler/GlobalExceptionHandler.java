@@ -25,8 +25,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@SuppressWarnings("unused")
 @ControllerAdvice
 public class GlobalExceptionHandler {
+
+
+    @ExceptionHandler(value = {IllegalActionException.class})
+    public ResponseEntity<?> handleIllegalActionException(IllegalActionException e) {
+        return buildResponse(e.getStatus(), e.getMessage());
+    }
 
 
     @ExceptionHandler(AccessDeniedException.class)
@@ -113,11 +120,6 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<?> handleEntityNotFoundException(EntityNotFoundException e) {
-        return buildResponse(e.getStatus(), e.getMessage());
-    }
-
-    @ExceptionHandler(IllegalActionException.class)
-    public ResponseEntity<?> handleIllegalActionException(IllegalActionException e) {
         return buildResponse(e.getStatus(), e.getMessage());
     }
 
