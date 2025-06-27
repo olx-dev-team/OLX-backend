@@ -31,8 +31,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public CategoryDTO getCategoryById(Long id) {
 
-        Category category = categoryRepository
-                .findById(id).orElseThrow(() -> new EntityNotFoundException("Category not found with id: " + id, HttpStatus.NOT_FOUND));
+        Category category = categoryRepository.findByIdOrThrow(id);
         return categoryMapper.toDto(category);
 
     }
@@ -42,8 +41,7 @@ public class CategoryServiceImpl implements CategoryService {
 
         Category parentCategory = null;
         if (categoryReqDTO.getParentId() != 0) {
-             parentCategory = categoryRepository.findById(categoryReqDTO.getParentId())
-                    .orElseThrow(() -> new EntityNotFoundException("Category not found with id: " + categoryReqDTO.getParentId(), HttpStatus.NOT_FOUND));
+            parentCategory = categoryRepository.findByIdOrThrow(categoryReqDTO.getParentId());
         }
 
         if (categoryRepository.existsByNameIgnoreCase(categoryReqDTO.getName())) {
@@ -66,9 +64,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public CategoryDTO update(Long id, CategoryDTO categoryDTO) {
 
-        Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Category not found with id: " + id, HttpStatus.NOT_FOUND));
-
+        Category category = categoryRepository.findByIdOrThrow(id);
 
         category.setName(categoryDTO.getName());
 
@@ -80,8 +76,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public CategoryDTO delete(Long id) {
 
-        Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Category not found with id: " + id, HttpStatus.NOT_FOUND));
+        Category category = categoryRepository.findByIdOrThrow(id);
 
         categoryRepository.delete(category);
         return categoryMapper.toDto(category);

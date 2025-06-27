@@ -36,13 +36,38 @@ public class ProductController {
         return productService.increaseViewCount(id);
     }
 
+    /**
+     * user ning approved == true va statusi active == true bo'lganlarini chiqaradi
+     *
+     * @param page
+     * @param size
+     * @return
+     */
     @GetMapping("/close/v1/my-products")
-    public PageDTO<ProductDTO> getUserProducts(@RequestParam(defaultValue = "0") Integer page,
-                                               @RequestParam(defaultValue = "10") Integer size) {
-        return productService.getUserProducts(page, size);
+    public PageDTO<ProductDTO> getUserProductsIsApprovedTrue(@RequestParam(defaultValue = "0") Integer page,
+                                                             @RequestParam(defaultValue = "10") Integer size) {
+        return productService.getUserProductsIsApprovedTrue(page, size);
     }
 
-    @PreAuthorize(value = "hasRole('USER')")
+    @GetMapping("/close/v1/products/waiting")
+    public PageDTO<ProductDTO> getWaitingProducts(@RequestParam(defaultValue = "0") Integer page,
+                                                  @RequestParam(defaultValue = "10") Integer size) {
+        return productService.getWaitingProducts(page, size);
+    }
+
+    @GetMapping("/close/v1/products/inactive")
+    public PageDTO<ProductDTO> getInactiveProducts(@RequestParam(defaultValue = "0") Integer page,
+                                                  @RequestParam(defaultValue = "10") Integer size) {
+        return productService.getInactiveProducts(page, size);
+    }
+
+    @GetMapping("/close/v1/products/rejected")
+    public PageDTO<ProductDTO> getRejectedProducts(@RequestParam(defaultValue = "0") Integer page,
+                                                   @RequestParam(defaultValue = "10") Integer size) {
+        return productService.getRejectedProducts(page, size);
+    }
+
+    @PreAuthorize(value = "hasAnyRole('USER','ADMIN')")
     @PostMapping(value = "/close/v1/products", consumes = {"multipart/form-data"})
     public ResponseEntity<ProductDTO> createProduct(@ModelAttribute ProductReqDTO productReqDTO) {
 
@@ -50,7 +75,7 @@ public class ProductController {
         return ResponseEntity.status(HttpStatus.CREATED).body(saveProduct);
     }
 
-    @PreAuthorize(value = "hasRole('USER')")
+    @PreAuthorize(value = "hasAnyRole('ADMIN','USER')")
     @PutMapping(value = "/close/v1/products/{id}", consumes = {"multipart/form-data"})
     public ResponseEntity<ProductDTO> updateProduct(@PathVariable Long id,
                                                     @ModelAttribute ProductUpdateDTO productUpdateDTO) {
@@ -80,13 +105,5 @@ public class ProductController {
         return ResponseEntity.ok().build();
 
     }
-
-    @PreAuthorize(value = "hasRole('ADMIN')")
-    @PatchMapping("/close/v1/products/{id}/approve")
-    public void approveProduct(@PathVariable Long id) {
-        productService.approveProduct(id);
-    }
-
-
 }
 

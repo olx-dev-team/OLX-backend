@@ -3,7 +3,13 @@ package uz.pdp.backend.olxapp.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import uz.pdp.backend.olxapp.entity.abstractEntity.LongIdAbstract;
+import uz.pdp.backend.olxapp.enums.Role;
+import uz.pdp.backend.olxapp.enums.Status;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -15,6 +21,8 @@ import java.util.List;
 @Setter
 @Entity(name = "product")
 @FieldNameConstants
+@SQLDelete(sql = "UPDATE product SET deleted =true WHERE id=?")
+@SQLRestriction(value = "deleted=false")
 public class Product extends LongIdAbstract {
 
     @Column(nullable = false)
@@ -28,6 +36,9 @@ public class Product extends LongIdAbstract {
 
     @Column(nullable = false)
     private Boolean isApproved = false;
+
+    @Enumerated(EnumType.STRING)
+    private Status status = Status.PENDING_REVIEW;
 
     @Column(nullable = false)
     private Integer viewCounter = 0;
@@ -46,6 +57,9 @@ public class Product extends LongIdAbstract {
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductImage> productImages = new ArrayList<>();
+
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean deleted = false;
 
 //    @Column(nullable = false)
 //    private String title;

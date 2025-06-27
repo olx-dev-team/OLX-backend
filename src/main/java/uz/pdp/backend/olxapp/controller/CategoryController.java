@@ -29,21 +29,21 @@ public class CategoryController {
     }
 
 
-    @PreAuthorize(value = "hasRole('ADMIN')")
+    @PreAuthorize(value = "hasAnyRole('ADMIN','MANAGER')")
     @PostMapping("/close/v1/categories")
     public CategoryDTO createCategory(@RequestBody @Valid CategoryReqDTO categoryReqDTO) {
         return categoryService.save(categoryReqDTO);
     }
 
 
-    @PreAuthorize(value = "hasRole('ADMIN')")
+    @PreAuthorize(value = "hasAnyRole('ADMIN','MANAGER')")
     @PutMapping("/close/v1/categories/{id}")
     public CategoryDTO updateCategory(@PathVariable Long id, @Valid @RequestBody CategoryDTO categoryDTO) {
         return categoryService.update(id, categoryDTO);
     }
 
 
-    @PreAuthorize(value = "hasRole('ADMIN')")
+    @PreAuthorize(value = "hasAnyRole('ADMIN','MANAGER')")
     @DeleteMapping("/close/v1/categories/{id}")
     public CategoryDTO deleteCategory(@PathVariable Long id) {
         return categoryService.delete(id);

@@ -20,7 +20,11 @@ public interface ProductService {
 
     void deleteProduct(Long id);
 
-    void approveProduct(Long id);
+    PageDTO<ProductDTO> getUserProductsIsApprovedTrue(Integer page, Integer size);
 
-    PageDTO<ProductDTO> getUserProducts(Integer page, Integer size);
+    PageDTO<ProductDTO> getWaitingProducts(Integer page, Integer size);
+
+    PageDTO<ProductDTO> getInactiveProducts(Integer page, Integer size);
+
+    PageDTO<ProductDTO> getRejectedProducts(Integer page, Integer size);
 }
