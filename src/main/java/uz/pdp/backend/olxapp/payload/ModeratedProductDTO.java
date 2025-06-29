@@ -22,7 +22,4 @@ public class ModeratedProductDTO {
 
     private String description;
 
-    private Boolean isApproved = false;
-    
-
 }
