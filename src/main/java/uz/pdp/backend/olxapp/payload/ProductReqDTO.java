@@ -28,8 +28,6 @@ public class ProductReqDTO {
 
     private Long categoryId;
 
-    private boolean active;
-
     private List<ProductNewImageDTO> imageDTOS;
 
 }
