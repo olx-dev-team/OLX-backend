@@ -26,8 +26,6 @@ public class ProductUpdateDTO {
     @PositiveOrZero(message = "Price must be positive or zero")
     private BigDecimal price;
 
-    private boolean active;
-
     private List<ExistedImageDTO> existedImages = new ArrayList<>();
 
     private List<ProductNewImageDTO> productNewImages = new ArrayList<>();
