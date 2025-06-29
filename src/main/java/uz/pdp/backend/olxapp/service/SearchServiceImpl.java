@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import uz.pdp.backend.olxapp.entity.Product;
 import uz.pdp.backend.olxapp.mapper.ProductMapper;
@@ -20,10 +21,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SearchServiceImpl implements SearchService {
 
-    private final ProductRepository productRepository;
+   /* private final ProductRepository productRepository;
     private final ChatRepository chatRepository;
     private final ProductMapper productMapper;
-
 
     @Override
     public PageDTO<ProductDTO> search(FilterDTO filterDTO, Integer page, Integer size) {
@@ -49,6 +49,6 @@ public class SearchServiceImpl implements SearchService {
                 productPage.isEmpty()
         );
     }
-
+*/
 
 }
