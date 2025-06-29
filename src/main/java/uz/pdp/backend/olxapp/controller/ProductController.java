@@ -1,16 +1,13 @@
 
 package uz.pdp.backend.olxapp.controller;
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import uz.pdp.backend.olxapp.payload.PageDTO;
-import uz.pdp.backend.olxapp.payload.ProductDTO;
-import uz.pdp.backend.olxapp.payload.ProductReqDTO;
-import uz.pdp.backend.olxapp.payload.ProductUpdateDTO;
+import uz.pdp.backend.olxapp.payload.*;
 import uz.pdp.backend.olxapp.service.ProductService;
 
 @RestController
@@ -36,13 +33,6 @@ public class ProductController {
         return productService.increaseViewCount(id);
     }
 
-    /**
-     * user ning approved == true va statusi active == true bo'lganlarini chiqaradi
-     *
-     * @param page
-     * @param size
-     * @return
-     */
     @GetMapping("/close/v1/my-products")
     public PageDTO<ProductDTO> getUserProductsIsApprovedTrue(@RequestParam(defaultValue = "0") Integer page,
                                                              @RequestParam(defaultValue = "10") Integer size) {
@@ -57,7 +47,7 @@ public class ProductController {
 
     @GetMapping("/close/v1/products/inactive")
     public PageDTO<ProductDTO> getInactiveProducts(@RequestParam(defaultValue = "0") Integer page,
-                                                  @RequestParam(defaultValue = "10") Integer size) {
+                                                   @RequestParam(defaultValue = "10") Integer size) {
         return productService.getInactiveProducts(page, size);
     }
 
@@ -87,10 +77,9 @@ public class ProductController {
     @PreAuthorize(value = "hasRole('USER')")
     @PatchMapping("/close/v1/products/{id}/status")
     public ResponseEntity<Void> updateProductStatus(
-            @PathVariable Long id,
-            @Valid @RequestBody ProductReqDTO dto) {
+            @PathVariable Long id) {
 
-        productService.updateStatus(id, dto.isActive());
+        productService.updateStatus(id);
 
         // Muvaffaqiyatli o'zgarganda, odatda bo'sh javob (204 No Content)
         // yoki yangilangan obyektni qaytarish mumkin. Bo'sh javob samaraliroq.
@@ -105,5 +94,15 @@ public class ProductController {
         return ResponseEntity.ok().build();
 
     }
+
+    @GetMapping("/search")
+    public ResponseEntity<PageDTO<ProductDTO>> searchProducts(
+            @ModelAttribute ProductFilterDTO filterDTO,
+            Pageable pageable
+    ) {
+        return ResponseEntity.ok(productService.searchProducts(filterDTO, pageable));
+    }
+
+
 }
 
