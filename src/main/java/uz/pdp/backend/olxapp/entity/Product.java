@@ -1,19 +1,22 @@
 package uz.pdp.backend.olxapp.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import uz.pdp.backend.olxapp.entity.abstractEntity.LongIdAbstract;
-import uz.pdp.backend.olxapp.enums.Role;
+import uz.pdp.backend.olxapp.enums.RejectionReasonEnum;
 import uz.pdp.backend.olxapp.enums.Status;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -34,11 +37,16 @@ public class Product extends LongIdAbstract {
     @Column(nullable = false)
     private BigDecimal price;
 
-    @Column(nullable = false)
-    private Boolean isApproved = false;
+    private boolean isApproved = false; // Moderatsiya tekshiruvi uchun
 
     @Enumerated(EnumType.STRING)
     private Status status = Status.PENDING_REVIEW;
+
+    @ElementCollection(targetClass = RejectionReasonEnum.class, fetch = FetchType.EAGER)
+    @CollectionTable(name = "product_rejection_reasons", joinColumns = @JoinColumn(name = "product_id"))
+    @Enumerated(EnumType.STRING)
+    @Column(name = "reason", nullable = false)
+    private Set<RejectionReasonEnum> rejectionReasons = new HashSet<>();
 
     @Column(nullable = false)
     private Integer viewCounter = 0;
