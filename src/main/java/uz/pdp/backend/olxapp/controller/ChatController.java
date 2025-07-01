@@ -3,6 +3,7 @@ package uz.pdp.backend.olxapp.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -10,6 +11,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import uz.pdp.backend.olxapp.entity.Chat;
+import uz.pdp.backend.olxapp.entity.Message;
 import uz.pdp.backend.olxapp.entity.User;
 import uz.pdp.backend.olxapp.payload.ChatDTO;
 import uz.pdp.backend.olxapp.payload.CreateMessageDTO;
@@ -60,7 +63,12 @@ public class ChatController {
             @AuthenticationPrincipal User currentUser,
             // Spring автоматически создаст Pageable из параметров запроса
             // ?page=0&size=20&sort=sentAt,desc
-            @PageableDefault(size = 20, sort = "sentAt", direction = Sort.Direction.DESC) Pageable pageable) {
+//            @PageableDefault(size = 20, sort = "sentAt", direction = Sort.Direction.DESC) Pageable pageable)
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "10") Integer size) {
+
+        Sort sort = Sort.by(Sort.Direction.DESC, Message.Fields.sentAt);
+        PageRequest pageable = PageRequest.of(page, size, sort);
 
 
         PageDTO<MessageDTO> messages = chatService.getChatMessages(chatId, currentUser.getId(), pageable);

@@ -61,7 +61,7 @@ public class User extends LongIdAbstract implements UserDetails {
     @OneToMany(mappedBy = "sender", fetch = FetchType.LAZY)
     private List<Notification> sentNotifications;
 
-    @ManyToMany(fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "createdBy", fetch = FetchType.LAZY)
     private List<Product> products;
 
     @OneToMany(mappedBy = "userOne")

@@ -1,6 +1,7 @@
 
 package uz.pdp.backend.olxapp.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -36,7 +37,7 @@ public class ProductController {
     @GetMapping("/close/v1/my-products")
     public PageDTO<ProductDTO> getUserProductsIsApprovedTrue(@RequestParam(defaultValue = "0") Integer page,
                                                              @RequestParam(defaultValue = "10") Integer size) {
-        return productService.getUserProductsIsApprovedTrue(page, size);
+        return productService.getMyProductsIsActive(page, size);
     }
 
     @GetMapping("/close/v1/products/waiting")
@@ -59,7 +60,7 @@ public class ProductController {
 
     @PreAuthorize(value = "hasAnyRole('USER','ADMIN')")
     @PostMapping(value = "/close/v1/products", consumes = {"multipart/form-data"})
-    public ResponseEntity<ProductDTO> createProduct(@ModelAttribute ProductReqDTO productReqDTO) {
+    public ResponseEntity<ProductDTO> createProduct(@ModelAttribute @Valid ProductReqDTO productReqDTO) {
 
         ProductDTO saveProduct = productService.save(productReqDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(saveProduct);
@@ -68,7 +69,7 @@ public class ProductController {
     @PreAuthorize(value = "hasAnyRole('ADMIN','USER')")
     @PutMapping(value = "/close/v1/products/{id}", consumes = {"multipart/form-data"})
     public ResponseEntity<ProductDTO> updateProduct(@PathVariable Long id,
-                                                    @ModelAttribute ProductUpdateDTO productUpdateDTO) {
+                                                    @ModelAttribute @Valid ProductUpdateDTO productUpdateDTO) {
 
         ProductDTO updatedProduct = productService.updateProduct(id, productUpdateDTO);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(updatedProduct);
@@ -95,12 +96,13 @@ public class ProductController {
 
     }
 
-    @GetMapping("/search")
+    @GetMapping("/open/v1/search")
     public ResponseEntity<PageDTO<ProductDTO>> searchProducts(
-            @ModelAttribute ProductFilterDTO filterDTO,
-            Pageable pageable
+            ProductFilterDTO filterDTO,
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "10") Integer size
     ) {
-        return ResponseEntity.ok(productService.searchProducts(filterDTO, pageable));
+        return ResponseEntity.ok(productService.searchProducts(filterDTO, page, size));
     }
 
 

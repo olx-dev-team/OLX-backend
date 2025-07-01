@@ -17,14 +17,14 @@ public class AdminController {
     private final UserService userService;
 
     @GetMapping("/get-all-users")
-    public PageDTO<?> getAllUsers(@RequestParam Integer page,
-                                  @RequestParam Integer size){
+    public PageDTO<?> getAllUsers(@RequestParam(defaultValue = "0") Integer page,
+                                  @RequestParam(defaultValue = "10") Integer size){
         return userService.getAll(page,size);
     }
 
     @GetMapping("/get-all-users/inactive")
-    public PageDTO<?> getAllInactiveUsers(@RequestParam Integer page,
-                                          @RequestParam Integer size){
+    public PageDTO<?> getAllInactiveUsers(@RequestParam(defaultValue = "0") Integer page,
+                                          @RequestParam(defaultValue = "10") Integer size){
         return userService.getAllInactive(page,size);
     }
 

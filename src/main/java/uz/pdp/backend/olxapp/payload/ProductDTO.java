@@ -1,7 +1,6 @@
 package uz.pdp.backend.olxapp.payload;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -11,7 +10,6 @@ import uz.pdp.backend.olxapp.entity.*;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -49,7 +47,7 @@ public class ProductDTO implements Serializable {
 
     private List<FavoritesDTO> favorites = new ArrayList<>();
 
-    private List<ProductImageDto> productImages = new ArrayList<>();
+    private List<ProductImageDTO> productImages = new ArrayList<>();
 
     private Long createdById;
 

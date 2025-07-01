@@ -1,6 +1,7 @@
-package uz.pdp.backend.olxapp.entity;
+package uz.pdp.backend.olxapp.payload;
 
 import lombok.*;
+import uz.pdp.backend.olxapp.entity.ProductImage;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -11,7 +12,7 @@ import java.time.LocalDateTime;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ProductImageDto implements Serializable {
+public class ProductImageDTO implements Serializable {
     LocalDateTime createdAt;
     LocalDateTime updatedAt;
     boolean active;

@@ -2,125 +2,220 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <title>Mahsulotni tahrirlash</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mahsulotni Tahrirlash (JavaScript)</title>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: auto; padding: 20px; background-color: #f9f9f9; }
+        h1, h2, h3 { color: #333; }
+        .config-section { background-color: #eef; padding: 15px; border-radius: 8px; margin-bottom: 25px; border: 1px solid #cce; }
+        .form-group { margin-bottom: 1rem; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; }
+        input[type="text"], input[type="number"], textarea { width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+        .fetch-controls { display: flex; align-items: flex-end; gap: 10px; }
+        .fetch-controls .form-group { flex-grow: 1; }
+        button { background-color: #007bff; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        button:hover { background-color: #0056b3; }
+        #productUpdateForm { display: none; border: 1px solid #ddd; padding: 20px; border-radius: 8px; background-color: white; }
+        .image-section { border-top: 2px solid #f0f0f0; padding-top: 15px; margin-top: 15px; }
+        .image-item { display: flex; align-items: center; gap: 15px; padding: 10px; border-bottom: 1px solid #eee; }
+        .remove-btn { background-color: #dc3545; }
+        .remove-btn:hover { background-color: #c82333; }
+        #response-area { margin-top: 20px; padding: 15px; border-radius: 5px; background-color: #e2e3e5; white-space: pre-wrap; word-wrap: break-word; font-family: monospace; }
+        #response-area.success { background-color: #d4edda; color: #155724; }
+        #response-area.error { background-color: #f8d7da; color: #721c24; }
+    </style>
 </head>
 <body>
-<h2>Mahsulotni tahrirlash</h2>
 
-<label>Bearer Token:</label><br>
-<input type="text" id="token" placeholder="Token kiriting" style="width: 500px;"><br><br>
+<h1>Mahsulotni Tahrirlash</h1>
 
-<label>Product ID:</label><br>
-<input type="number" id="productId"><br><br>
+<div class="config-section">
+    <h2>Sozlamalar</h2>
+    <div class="form-group">
+        <label for="bearerToken">Bearer Token (Yangilash uchun)</label>
+        <input type="text" id="bearerToken" placeholder="Tokenni bu yerga kiriting...">
+    </div>
+    <div class="fetch-controls">
+        <div class="form-group">
+            <label for="productId">Mahsulot ID</label>
+            <input type="number" id="productId" placeholder="O'zgartiriladigan mahsulot IDsi">
+        </div>
+        <button type="button" id="fetchProductBtn">Ma'lumotlarni Olish</button>
+    </div>
+</div>
 
-<button onclick="loadProduct()">Ma'lumotni yuklash</button><br><br>
+<!-- Bu forma ma'lumotlarni jo'natish uchun ishlatiladi -->
+<form id="productUpdateForm" enctype="multipart/form-data">
 
-<form id="editForm" enctype="multipart/form-data" onsubmit="submitForm(event)">
-    <label>Sarlavha (title):</label><br>
-    <input type="text" name="title" id="title"><br><br>
+    <div class="form-group">
+        <label for="title">Sarlavha (Title)</label>
+        <input type="text" id="title" name="title" required>
+    </div>
 
-    <label>Tavsif (description):</label><br>
-    <textarea name="description" id="description"></textarea><br><br>
+    <div class="form-group">
+        <label for="description">Tavsif (Description)</label>
+        <textarea id="description" name="description"></textarea>
+    </div>
 
-    <label>Narx (price):</label><br>
-    <input type="number" step="0.01" name="price" id="price"><br><br>
+    <div class="form-group">
+        <label for="price">Narx (Price)</label>
+        <input type="number" id="price" name="price" min="0" step="0.01">
+    </div>
 
-    <label>Faolmi (active):</label>
-    <input type="checkbox" name="active" id="active"><br><br>
+    <div class="image-section">
+        <h3>Mavjud Rasmlar</h3>
+        <div id="existing-images-container"></div>
+    </div>
 
-    <label>Mavjud rasmlar (existedImages):</label><br>
-    <div id="existedImagesContainer"></div>
-    <button type="button" onclick="addExistedImage()">+ Existed Image</button><br><br>
+    <div class="image-section">
+        <h3>Yangi Rasm Qo'shish</h3>
+        <div id="new-images-container"></div>
+        <br>
+        <button type="button" id="add-new-image-btn" style="background-color: #28a745;">Yangi Rasm Qo'shish</button>
+    </div>
 
-    <label>Yangi rasm yuklash (productNewImages):</label><br>
-    <div id="newImagesContainer"></div>
-    <button type="button" onclick="addNewImage()">+ New Image</button><br><br>
-
-    <button type="submit">Saqlash</button>
+    <br>
+    <button type="submit">Mahsulotni Yangilash</button>
 </form>
 
-<br><hr>
-<h3>Server javobi:</h3>
-<pre id="response"></pre>
+<h2>Server Javobi</h2>
+<pre id="response-area">Javob shu yerda ko'rinadi...</pre>
 
 <script>
+    // DOM elementlari
+    const bearerTokenInput = document.getElementById('bearerToken');
+    const productIdInput = document.getElementById('productId');
+    const fetchProductBtn = document.getElementById('fetchProductBtn');
+    const productUpdateForm = document.getElementById('productUpdateForm');
+    const responseArea = document.getElementById('response-area');
+
+    const titleInput = document.getElementById('title');
+    const descriptionInput = document.getElementById('description');
+    const priceInput = document.getElementById('price');
+
+    const existingImagesContainer = document.getElementById('existing-images-container');
+    const newImagesContainer = document.getElementById('new-images-container');
+    const addNewImageBtn = document.getElementById('add-new-image-btn');
+
+    // MUHIM: API manzillarini to'liq yozamiz!
+    const API_BASE_URL = 'http://localhost:9090/api';
+
     let newImageIndex = 0;
-    let existedImageIndex = 0;
 
-    function addExistedImage(imageId = '', main = false) {
-        const container = document.getElementById('existedImagesContainer');
-        const div = document.createElement('div');
-        div.innerHTML = `
-            Image ID: <input type="number" name="existedImages[${existedImageIndex}].imageId" value="${imageId}">
-            Main: <input type="checkbox" name="existedImages[${existedImageIndex}].main" ${main ? 'checked' : ''}><br>`;
-        container.appendChild(div);
-        existedImageIndex++;
-    }
-
-    function addNewImage() {
-        const container = document.getElementById('newImagesContainer');
-        const div = document.createElement('div');
-        div.innerHTML = `
-            Fayl: <input type="file" name="productNewImages[${newImageIndex}].file">
-            Main: <input type="checkbox" name="productNewImages[${newImageIndex}].main"><br>`;
-        container.appendChild(div);
-        newImageIndex++;
-    }
-
-    async function loadProduct() {
-        const productId = document.getElementById('productId').value;
-        const token = document.getElementById('token').value;
-
-        const res = await fetch(`http://localhost:9090/api/open/v1/products/view/${productId}`, {
-            headers: {
-                'Authorization': 'Bearer ' + token
-            }
-        });
-
-        if (!res.ok) {
-            document.getElementById('response').textContent = "Xatolik: " + res.status;
+    // 1. GET so'rovi: Ma'lumotlarni olish
+    async function fetchProductData() {
+        const productId = productIdInput.value;
+        if (!productId) {
+            alert("Iltimos, mahsulot ID sini kiriting.");
             return;
         }
 
-        const data = await res.json();
+        setResponse('Yuklanmoqda...', '');
+        productUpdateForm.style.display = 'none';
 
-        document.getElementById('title').value = data.title || '';
-        document.getElementById('description').value = data.description || '';
-        document.getElementById('price').value = data.price || 0;
-        document.getElementById('active').checked = data.active || false;
+        try {
+            // TOKEN KERAK EMAS, MANZIL TO'LIQ YOZILGAN
+            const response = await fetch(`${API_BASE_URL}/open/v1/products/${productId}`);
 
-        document.getElementById('existedImagesContainer').innerHTML = '';
-        existedImageIndex = 0;
-        if (data.productImages) {
-            data.productImages.forEach(img => {
-                addExistedImage(img.id, img.main);
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ message: `Serverdan xatolik (Status: ${response.status})` }));
+                throw new Error(errorData.message || `Server xatosi: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            populateForm(data);
+            setResponse("Ma'lumotlar olindi. Endi tahrirlashingiz mumkin.\n\n" + JSON.stringify(data, null, 2), 'success');
+            productUpdateForm.style.display = 'block';
+
+        } catch (error) {
+            setResponse(`Ma'lumot olishda xatolik: ${error.message}`, 'error');
+        }
+    }
+
+    // 2. Formani serverdan kelgan ma'lumotlar bilan to'ldirish
+    function populateForm(product) {
+        titleInput.value = product.title || '';
+        descriptionInput.value = product.description || '';
+        priceInput.value = product.price || 0;
+
+        existingImagesContainer.innerHTML = '';
+        if (product.productImages && product.productImages.length > 0) {
+            product.productImages.forEach((image, index) => {
+                const imageItem = document.createElement('div');
+                imageItem.classList.add('image-item');
+                imageItem.innerHTML = `
+                        <input type="hidden" name="existedImages[${index}].imageId" value="${image.id}">
+                        <span>Rasm ID: ${image.id}</span>
+                        <label><input type="checkbox" name="existedImages[${index}].main" value="true" ${image.main ? 'checked' : ''}> Asosiy</label>
+                        <button type="button" class="remove-btn">O'chirish</button>
+                    `;
+                existingImagesContainer.appendChild(imageItem);
+                imageItem.querySelector('.remove-btn').addEventListener('click', (e) => e.target.parentElement.remove());
             });
         }
 
-        document.getElementById('newImagesContainer').innerHTML = '';
+        newImagesContainer.innerHTML = '';
         newImageIndex = 0;
     }
 
-    async function submitForm(event) {
+    // 3. Yangi rasm qo'shish maydoni yaratish
+    function createNewImageField() {
+        const imageGroup = document.createElement('div');
+        imageGroup.classList.add('image-item');
+        imageGroup.innerHTML = `
+                <input type="file" name="productNewImages[${newImageIndex}].file" required>
+                <label><input type="checkbox" name="productNewImages[${newImageIndex}].main" value="true"> Asosiy</label>
+                <button type="button" class="remove-btn">Bekor qilish</button>
+            `;
+        newImagesContainer.appendChild(imageGroup);
+        imageGroup.querySelector('.remove-btn').addEventListener('click', () => imageGroup.remove());
+        newImageIndex++;
+    }
+
+    // 4. PUT so'rovi: Formani serverga yuborish
+    productUpdateForm.addEventListener('submit', async (event) => {
         event.preventDefault();
 
-        const productId = document.getElementById('productId').value;
-        const token = document.getElementById('token').value;
+        const token = bearerTokenInput.value;
+        const productId = productIdInput.value;
 
-        const form = document.getElementById('editForm');
-        const formData = new FormData(form);
+        if (!token) {
+            alert('Yangilash uchun Bearer Tokenni kiriting.');
+            return;
+        }
 
-        const response = await fetch(`http://localhost:90900/api/close/v1/products/${productId}`, {
-            method: 'PUT',
-            headers: {
-                'Authorization': 'Bearer ' + token
-            },
-            body: formData
-        });
+        setResponse('Yangilanmoqda...', '');
+        const formData = new FormData(productUpdateForm);
 
-        const result = await response.json();
-        document.getElementById('response').textContent = JSON.stringify(result, null, 2);
+        try {
+            // TOKEN KERAK, MANZIL TO'LIQ YOZILGAN
+            const response = await fetch(`${API_BASE_URL}/close/v1/products/${productId}`, {
+                method: 'PUT',
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                setResponse("Muvaffaqiyatli yangilandi!\n\n" + JSON.stringify(result, null, 2), 'success');
+                alert('Mahsulot muvaffaqiyatli yangilandi!');
+            } else {
+                throw new Error(result.message || JSON.stringify(result, null, 2));
+            }
+
+        } catch (error) {
+            setResponse(`Yangilashda xatolik: ${error.message}`, 'error');
+        }
+    });
+
+    function setResponse(message, type) {
+        responseArea.textContent = message;
+        responseArea.className = type;
     }
+
+    fetchProductBtn.addEventListener('click', fetchProductData);
+    addNewImageBtn.addEventListener('click', createNewImageField);
 </script>
 </body>
 </html>

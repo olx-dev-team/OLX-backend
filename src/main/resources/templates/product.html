@@ -1,107 +1,268 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <title>Product Form</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yangi Mahsulot Yaratish</title>
     <style>
         body {
-            font-family: sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            max-width: 800px;
+            margin: 20px auto;
             padding: 20px;
-            max-width: 600px;
-            margin: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #0056b3;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 1.2rem;
         }
         label {
-            font-weight: bold;
             display: block;
-            margin-top: 15px;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
         }
         input[type="text"],
         input[type="number"],
-        input[type="file"],
         textarea {
             width: 100%;
-            padding: 8px;
-            margin-top: 5px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box; /* To prevent padding from affecting width */
         }
-        .image-upload {
-            display: flex;
-            gap: 20px;
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        .token-section {
+            background-color: #e9ecef;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 25px;
+        }
+        .image-section {
+            border: 1px dashed #ccc;
+            padding: 15px;
             margin-top: 10px;
+            border-radius: 5px;
         }
-        .image-box {
-            text-align: center;
+        .image-group {
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
         }
-        .image-box input[type="file"] {
-            margin-bottom: 5px;
+        .image-group:first-child {
+            border-top: none;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button.add-btn {
+            background-color: #28a745;
+        }
+        button.add-btn:hover {
+            background-color: #218838;
+        }
+        button.remove-btn {
+            background-color: #dc3545;
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+        button.remove-btn:hover {
+            background-color: #c82333;
+        }
+        #response-area {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            background-color: #e2e3e5;
+            white-space: pre-wrap; /* To wrap long lines of text */
+            word-wrap: break-word;
+        }
+        #response-area.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        #response-area.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
         }
     </style>
 </head>
 <body>
 
-<h2>Yangi Mahsulot Qo‘shish</h2>
+<h1>Mahsulot Yaratish Formasi</h1>
 
+<div class="token-section">
+    <h2>Avtorizatsiya</h2>
+    <div class="form-group">
+        <label for="bearerToken">Bearer Token</label>
+        <input type="text" id="bearerToken" placeholder="Tokenni bu yerga kiriting...">
+    </div>
+</div>
+
+<!--
+    enctype="multipart/form-data" - fayllarni jo'natish uchun majburiy atribut.
+    Spring Bootdagi @ModelAttribute shu orqali form-data ni o'qiydi.
+-->
 <form id="productForm" enctype="multipart/form-data">
-    <label>Title</label>
-    <input type="text" name="title" required>
 
-    <label>Description</label>
-    <textarea name="description" maxlength="5000"></textarea>
-
-    <label>Price</label>
-    <input type="number" name="price" min="0" step="0.01" required>
-
-    <label>Category ID</label>
-    <input type="number" name="categoryId" required>
-
-    <label>Active</label>
-    <input type="checkbox" name="active">
-
-    <label>Images</label>
-    <div class="image-upload">
-        <div class="image-box">
-            <input type="file" name="imageDTOS[0].file" accept="image/*">
-            <label><input type="checkbox" name="imageDTOS[0].main"> isMain</label>
-        </div>
-        <div class="image-box">
-            <input type="file" name="imageDTOS[1].file" accept="image/*">
-            <label><input type="checkbox" name="imageDTOS[1].main"> isMain</label>
-        </div>
-        <div class="image-box">
-            <input type="file" name="imageDTOS[2].file" accept="image/*">
-            <label><input type="checkbox" name="imageDTOS[2].main"> isMain</label>
-        </div>
+    <div class="form-group">
+        <label for="title">Sarlavha (Title)</label>
+        <input type="text" id="title" name="title" required>
     </div>
 
-    <button type="submit" style="margin-top:20px;">Yuborish</button>
+    <div class="form-group">
+        <label for="description">Tavsif (Description)</label>
+        <textarea id="description" name="description"></textarea>
+    </div>
+
+    <div class="form-group">
+        <label for="price">Narx (Price)</label>
+        <input type="number" id="price" name="price" min="0" step="0.01">
+    </div>
+
+    <div class="form-group">
+        <label for="categoryId">Kategoriya ID (Category ID)</label>
+        <input type="number" id="categoryId" name="categoryId" step="1" min="1">
+    </div>
+
+    <div class="image-section">
+        <h2>Rasmlar</h2>
+        <div id="image-container">
+            <!-- JavaScript dinamik ravishda rasm qo'shish maydonlarini shu yerga qo'yadi -->
+        </div>
+        <br>
+        <button type="button" class="add-btn" id="add-image-btn">Rasm Qo'shish</button>
+    </div>
+
+    <br>
+    <button type="submit">Mahsulotni Yaratish</button>
+
 </form>
 
+<h2>Server Javobi</h2>
+<pre id="response-area">Javob shu yerda ko'rinadi...</pre>
+
 <script>
-    // 🔐 Token va endpoint to‘g‘ridan-to‘g‘ri shu fayl ichida yoziladi:
-    const TOKEN = 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsImlhdCI6MTc1MDk2NzE1NywiZXhwIjoxNzUwOTcwNzU3fQ.-Rl0C_YJZwmNh6f9KY6xeBziEvEHCbdCC4A9gAn56G8'; // bu yerga JWT tokeningizni yozing
-    const ENDPOINT = 'http://localhost:9090/api/close/v1/products'; // API endpointingizni yozing
+    // Rasm qo'shish uchun index hisoblagichi
+    let imageIndex = 0;
 
-    document.getElementById('productForm').addEventListener('submit', async function (e) {
-        e.preventDefault();
+    const addImageBtn = document.getElementById('add-image-btn');
+    const imageContainer = document.getElementById('image-container');
+    const productForm = document.getElementById('productForm');
+    const responseArea = document.getElementById('response-area');
 
-        const form = e.target;
-        const formData = new FormData(form);
+    // Yangi rasm yuklash bloki yaratish funksiyasi
+    function createNewImageField() {
+        const imageGroup = document.createElement('div');
+        imageGroup.classList.add('image-group');
 
+        // Spring Boot `List` ni bind qilish uchun name atributi `listNomi[index].maydonNomi` formatida bo'lishi kerak.
+        // Masalan: imageDTOS[0].file, imageDTOS[0].main
+        imageGroup.innerHTML = `
+                <div>
+                    <label for="file_${imageIndex}">Rasm fayli</label>
+                    <input type="file" id="file_${imageIndex}" name="imageDTOS[${imageIndex}].file" required>
+                </div>
+                <div>
+                    <label for="main_${imageIndex}">Asosiy rasmmi?</label>
+                    <input type="checkbox" id="main_${imageIndex}" name="imageDTOS[${imageIndex}].main" value="true">
+                </div>
+                <button type="button" class="remove-btn">O'chirish</button>
+            `;
+
+        imageContainer.appendChild(imageGroup);
+
+        // O'chirish tugmasiga event listener qo'shish
+        imageGroup.querySelector('.remove-btn').addEventListener('click', () => {
+            imageGroup.remove();
+        });
+
+        imageIndex++;
+    }
+
+    // "Rasm Qo'shish" tugmasini bosganda yangi maydon qo'shish
+    addImageBtn.addEventListener('click', createNewImageField);
+
+    // Formani jo'natish
+    productForm.addEventListener('submit', async (event) => {
+        // Brauzerning standart forma jo'natishini to'xtatish
+        event.preventDefault();
+
+        // Javob maydonini tozalash
+        responseArea.textContent = 'So\'rov yuborilmoqda...';
+        responseArea.className = '';
+
+        const token = document.getElementById('bearerToken').value;
+        if (!token) {
+            responseArea.textContent = 'Xatolik: Bearer Token kiritilmagan!';
+            responseArea.className = 'error';
+            alert('Iltimos, Bearer Tokenni kiriting.');
+            return;
+        }
+
+        // `FormData` obyekti formadagi barcha ma'lumotlarni (fayllarni ham) yig'adi.
+        const formData = new FormData(productForm);
+
+        // `fetch` orqali so'rovni jo'natish
         try {
-            const response = await fetch(ENDPOINT, {
+            // API_URL ni o'zingizning server manzilingizga o'zgartiring (masalan: http://localhost:8080/api/close/v1/products)
+            const response = await fetch('/api/close/v1/products', {
                 method: 'POST',
                 headers: {
-                    'Authorization': TOKEN
+                    // MUHIM: `multipart/form-data` uchun 'Content-Type' sarlavhasini qo'lda yozmang!
+                    // Brauzer `FormData` dan foydalanganda uni avtomatik to'g'ri `boundary` bilan qo'yadi.
+                    'Authorization': `Bearer ${token}`
                 },
                 body: formData
             });
 
+            // Javobni JSON formatida olishga harakat qilamiz
             const result = await response.json();
-            alert("Natija:\n" + JSON.stringify(result, null, 2));
+
+            // Javobni chiroyli formatda chiqarish
+            responseArea.textContent = JSON.stringify(result, null, 2);
+
+            if (response.ok) {
+                responseArea.classList.add('success');
+                alert('Mahsulot muvaffaqiyatli yaratildi!');
+            } else {
+                responseArea.classList.add('error');
+                alert('Xatolik yuz berdi!');
+            }
+
         } catch (error) {
-            alert("Xatolik:\n" + error);
+            console.error('Fetch xatosi:', error);
+            responseArea.textContent = `Tarmoq xatosi yoki server bilan bog'lanishda muammo: \n${error.message}`;
+            responseArea.className = 'error';
         }
     });
-</script>
 
+    // Boshlang'ich holatda bitta rasm maydonini qo'shib qo'yamiz
+    createNewImageField();
+
+</script>
 </body>
 </html>

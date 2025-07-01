@@ -18,7 +18,7 @@ public interface ProductService {
 
     void deleteProduct(Long id);
 
-    PageDTO<ProductDTO> getUserProductsIsApprovedTrue(Integer page, Integer size);
+    PageDTO<ProductDTO> getMyProductsIsActive(Integer page, Integer size);
 
     PageDTO<ProductDTO> getWaitingProducts(Integer page, Integer size);
 
@@ -26,5 +26,5 @@ public interface ProductService {
 
     PageDTO<ProductDTO> getRejectedProducts(Integer page, Integer size);
 
-    PageDTO<ProductDTO> searchProducts(ProductFilterDTO filterDTO, Pageable pageable);
+    PageDTO<ProductDTO> searchProducts(ProductFilterDTO filterDTO, Integer page, Integer size);
 }

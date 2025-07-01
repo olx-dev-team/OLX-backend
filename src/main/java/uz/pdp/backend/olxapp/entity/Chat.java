@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.FieldNameConstants;
 import uz.pdp.backend.olxapp.entity.abstractEntity.LongIdAbstract;
 
 import java.util.ArrayList;
@@ -15,6 +16,7 @@ import java.util.List;
 @Getter
 @Setter
 @Entity(name = "chats")
+@FieldNameConstants
 public class Chat extends LongIdAbstract {
 
     @ManyToOne(optional = false)

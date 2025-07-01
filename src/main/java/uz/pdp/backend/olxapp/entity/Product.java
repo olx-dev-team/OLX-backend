@@ -55,7 +55,7 @@ public class Product extends LongIdAbstract {
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne( optional = false)
     @JoinColumn(name = "created_by", nullable = false)
     private User createdBy;
 
