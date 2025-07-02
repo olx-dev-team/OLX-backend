@@ -1,5 +1,6 @@
 package uz.pdp.backend.olxapp.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -20,6 +21,7 @@ import uz.pdp.backend.olxapp.repository.UserRepository;
 import java.util.Collections;
 import java.util.List;
 
+@Slf4j
 @Service
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
@@ -36,32 +38,38 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("user not found"));
-
+        log.info("Loading user by username: {}", username);
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> {
+                    log.warn("User not found with username: {}", username);
+                    return new RuntimeException("user not found");
+                });
     }
+
 
     @Override
     public TokenDTO login(LoginDTO loginDTO) {
+        log.info("Attempting login for username: {}", loginDTO.getUsername());
 
-        String username = loginDTO.getUsername();
-        String password = loginDTO.getPassword();
+        User user = (User) loadUserByUsername(loginDTO.getUsername());
+        boolean matches = passwordEncoder.matches(loginDTO.getPassword(), user.getPassword());
 
-        User user = (User) loadUserByUsername(username);
-
-        boolean matches = passwordEncoder.matches(password, user.getPassword());
         if (!matches) {
+            log.warn("Login failed for user: {}", loginDTO.getUsername());
             throw new RuntimeException("username or password incorrect");
-        } else {
-            return new TokenDTO(jwtService.generateToken(username));
         }
 
-
+        log.info("Login successful for user: {}", user.getUsername());
+        return new TokenDTO(jwtService.generateToken(user.getUsername()));
     }
 
     @Override
     public TokenDTO register(RegisterDTO registerDto) {
 
+        log.info("Registering new user with username: {}", registerDto.getUsername());
+
         if (userRepository.existsByUsername(registerDto.getUsername())) {
+            log.warn("Username already exists: {}", registerDto.getUsername());
             throw new UserNameAlreadyExistException("username already exist");
         }
 
@@ -83,16 +91,24 @@ public class UserServiceImpl implements UserService {
 
         User saveUser = userRepository.save(user);
 
+        log.info("User registered successfully: {}", saveUser.getUsername());
+
         return new TokenDTO(jwtService.generateToken(saveUser.getUsername()));
     }
 
 
     @Override
     public PageDTO<UserDTO> getAll(Integer page, Integer size) {
+
+        log.info("Fetching all users. Page: {}, Size: {}", page, size);
+
         Sort sort = Sort.by(LongIdAbstract.Fields.id).descending();
         PageRequest pageRequest = PageRequest.of(page, size, sort);
 
         Page<User> pageResult = userRepository.findAll(pageRequest);
+
+        log.info("Fetched {} users from database", pageResult.getTotalElements());
+
         List<UserDTO> content = pageResult.stream()
                 .map(userMapper::toDto)
                 .toList();
@@ -113,23 +129,36 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDTO getById(Long id) {
 
+        log.info("Fetching user by ID: {}", id);
+
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("user not found with id: %s".formatted(id), HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> {
+                    log.warn("User not found with ID: {}", id);
+                    return new EntityNotFoundException("user not found with id: %s".formatted(id), HttpStatus.NOT_FOUND);
+                });
 
         return userMapper.toDto(user);
     }
 
     @Override
     public UserDTO updateUser(UpdateUser updateUser, Long id) {
+
+        log.info("Updating user with ID: {}", id);
+
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("user not found with id: %s".formatted(id), HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> {
+                    log.warn("User not found with ID: {}", id);
+                    return new EntityNotFoundException("user not found with id: %s".formatted(id), HttpStatus.NOT_FOUND);
+                });
 
         // Username o'zgartirilgan bo'lsa
         if (!updateUser.getUsername().equals(user.getUsername())) {
             // Va yangi username boshqa userga tegishli bo'lsa
             if (userRepository.existsByUsername(updateUser.getUsername())) {
+                log.warn("Username already taken: {}", updateUser.getUsername());
                 throw new UserNameAlreadyExistException("Username already exists");
             }
+            log.info("Username changed from {} to {}", user.getUsername(), updateUser.getUsername());
             user.setUsername(updateUser.getUsername());
         }
 
@@ -140,33 +169,46 @@ public class UserServiceImpl implements UserService {
 
         userRepository.save(user);
 
+        log.info("User updated successfully: {}", user.getUsername());
+
         return userMapper.toDto(user);
     }
 
     @Override
     public UserDTO updatePassword(UpdateUserPassword updateUserPassword, Long id) {
+
+        log.info("Updating password for user ID: {}", id);
+
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "User not found with id: %s".formatted(id), HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> {
+                    log.warn("User not found with ID: {}", id);
+                    return new EntityNotFoundException(
+                        "User not found with id: %s".formatted(id), HttpStatus.NOT_FOUND);
+                });
 
         String oldPassword = updateUserPassword.getOldPassword();
         String newPassword = updateUserPassword.getNewPassword();
         String confirmPassword = updateUserPassword.getConfirmPassword();
 
         if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+            log.warn("Incorrect old password for user ID: {}", id);
             throw new IncorrectOldPasswordException("Old password is incorrect", HttpStatus.BAD_REQUEST);
         }
 
         if (!newPassword.equals(confirmPassword)) {
+            log.warn("Password mismatch for user ID: {}", id);
             throw new PasswordMismatchException("New password and confirm password must match", HttpStatus.BAD_REQUEST);
         }
 
         if (oldPassword.equals(newPassword)) {
+            log.warn("New password same as old password for user ID: {}", id);
             throw new SamePasswordException("New password must not be the same as the old password", HttpStatus.BAD_REQUEST);
         }
 
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
+
+        log.info("Password updated successfully for user ID: {}", id);
 
         return userMapper.toDto(user);
     }

@@ -1,7 +1,11 @@
 package uz.pdp.backend.olxapp.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -24,29 +28,47 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/test")
 @RequiredArgsConstructor
+@Tag(name = "Test", description = "Utility endpoints for testing purposes")
 public class TestController {
 
     private final CategoryRepository categoryRepository;
 
-    @GetMapping
-    void test() {
-        importRecursiveJsonToDb("src/main/resources/docs/sql/olx_full_categories.json");
-    }
+    @Operation(
+            summary = "Import categories from JSON",
+            description = "Recursively imports category data from a local JSON file located in `resources/docs/sql/olx_full_categories.json` and saves them into the database. Used for test/data seeding purposes.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Import successful"),
+                    @ApiResponse(responseCode = "500", description = "Failed to parse or save category data")
+            }
+    )
 
-
-    public void importRecursiveJsonToDb(String filePath) {
+    private void importRecursiveJsonToDb(String filePath) {
         ObjectMapper objectMapper = new ObjectMapper();
         try (InputStream is = new FileInputStream(filePath)) {
             List<CategoryDTO> topLevelList = Arrays.asList(objectMapper.readValue(is, CategoryDTO[].class));
 
             Map<Long, Category> savedMap = new HashMap<>();
-
             importRecursively(topLevelList, null, savedMap);
 
             System.out.println("All categories imported recursively!");
         } catch (IOException e) {
             throw new RuntimeException("Failed to read or parse category JSON file", e);
         }
+    }
+
+    @Operation(
+            summary = "Import categories from JSON",
+            description = "Recursively imports category data from a local JSON file located in `resources/docs/sql/olx_full_categories.json`",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Import successful"),
+                    @ApiResponse(responseCode = "500", description = "Failed to parse or save categories")
+            }
+    )
+
+    @GetMapping
+    public ResponseEntity<String> test() {
+        importRecursiveJsonToDb("src/main/resources/docs/sql/olx_full_categories.json");
+        return ResponseEntity.ok("All categories imported recursively");
     }
 
     private void importRecursively(List<CategoryDTO> dtoList, Category parent, Map<Long, Category> savedMap) {

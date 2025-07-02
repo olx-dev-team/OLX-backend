@@ -38,100 +38,81 @@ public class AttachmentServiceImpl implements AttachmentService {
     @PostConstruct
     public void init() {
         BASE_FOLDER = baseFolderProperty;
+        log.info("Attachment base folder initialized as: {}", BASE_FOLDER);
     }
 
     @Override
     public AttachmentDTO getByIdAttachment(Long id) {
+        log.info("Fetching attachment with ID: {}", id);
         Attachment attachment = attachmentRepository.findById(id)
-                .orElseThrow(() -> new FileNotFountException("Attachment not found with id: " + id));
+                .orElseThrow(() -> {
+                    log.warn("Attachment not found with ID: {}", id);
+                    return new FileNotFountException("Attachment not found with id: " + id);
+                });
         return attachmentMapper.toDto(attachment);
     }
 
     @Override
     public AttachmentDTO upload(MultipartFile file) {
+        log.info("Uploading single file: {}", file.getOriginalFilename());
         validateImage(file);
         Attachment attachment = saveFileToStorage(file);
         Attachment saved = attachmentRepository.save(attachment);
+        log.info("File saved with ID: {}", saved.getId());
         return attachmentMapper.toDto(saved);
     }
 
     @Override
-    public List<AttachmentDTO> upload(List<MultipartFile> multipartFiles) throws AttachmentSaveException {
-
-//        List<Attachment> attachments = multipartFiles.stream().map(this::saveFileToStorage).collect(Collectors.toList());
-//
-//        List<Attachment> attachments1 = attachmentRepository.saveAll(attachments);
-//        return attachments1.stream().map(attachmentMapper::toDto).toList();
-
+    public List<AttachmentDTO> upload(List<MultipartFile> multipartFiles) {
+        log.info("Uploading {} files in bulk", multipartFiles.size());
         List<Path> paths = new ArrayList<>();
         List<Attachment> attachments = new ArrayList<>();
+
         for (MultipartFile file : multipartFiles) {
-
             try {
-                String originalFilename = file.getOriginalFilename();
-                long size = file.getSize();
-                String contentType = file.getContentType();
-
-                String extension = extractExtension(originalFilename);
-                Path directoryPath = buildDirectoryPath();
-                Files.createDirectories(directoryPath);
-
-                Path filePath = generateUniqueFilePath(directoryPath, extension);
-
-                try (InputStream inputStream = file.getInputStream()) {
-                    Files.copy(inputStream, filePath);
-                }
-
-                Attachment attachment = new Attachment(
-                        originalFilename,
-                        contentType,
-                        size,
-                        filePath.toString()
-                );
-
+                log.debug("Processing file: {}", file.getOriginalFilename());
+                Attachment attachment = saveFileToStorage(file);
                 Attachment saved = attachmentRepository.save(attachment);
-                paths.add(filePath);
+                paths.add(Path.of(saved.getPath()));
                 attachments.add(saved);
-
-
-            } catch (IOException e) {
-
-                log.warn(e.getMessage());
+                log.info("Saved file: {} with ID: {}", saved.getOriginalName(), saved.getId());
+            } catch (AttachmentSaveException e) {
+                log.error("Failed to save file: {}", file.getOriginalFilename(), e);
                 cleanupStoredFiles(paths);
-
+                throw new AttachmentSaveException("Failed to save all files. Transaction rolled back.");
             }
-
-
         }
 
         return attachments.stream().map(attachmentMapper::toDto).collect(Collectors.toList());
-
-
     }
+
 
     /**
      * Berilgan ro'yxatdagi barcha fayllarni jismoniy o'chiradigan yordamchi metod.
      * @param paths O'chirilishi kerak bo'lgan fayllar ro'yxati
      */
     private void cleanupStoredFiles(List<Path> paths) {
+        log.warn("Cleanup initiated for {} files", paths.size());
         for (Path path : paths) {
             try {
                 Files.deleteIfExists(path);
-                // Bu yerda log yozish mumkin, masalan: log.warn("Rollback due to error. Deleting file: {}", path);
+                log.warn("Deleted file: {}", path);
             } catch (IOException ex) {
-                // Faylni o'chirishda xatolik bo'lsa, uni log'ga yozib qo'yamiz,
-                // lekin asosiy xatolikni "yutib yubormaslik" uchun yangi exception tashlamaymiz.
-                 log.error("Could not delete file {} during cleanup", path, ex);
+                log.error("Could not delete file during rollback: {}", path, ex);
             }
         }
     }
 
     @Override
     public void update(Long id, MultipartFile file) {
+        log.info("Updating file with ID: {}", id);
         validateImage(file);
 
         Attachment attachment = attachmentRepository.findById(id)
-                .orElseThrow(() -> new FileNotFountException("Attachment not found with id: " + id));
+                .orElseThrow(() -> {
+                    log.warn("Attachment not found with ID: {}", id);
+                    return new FileNotFountException("Attachment not found with id: " + id);
+                });
 
         deletePhysicalFile(attachment.getPath());
         Attachment updated = saveFileToStorage(file);
@@ -142,16 +123,23 @@ public class AttachmentServiceImpl implements AttachmentService {
         attachment.setPath(updated.getPath());
 
         attachmentRepository.save(attachment);
+        log.info("Attachment with ID {} successfully updated", id);
     }
 
     @Override
     public void deleteById(Long id) {
+        log.info("Deleting attachment with ID: {}", id);
         Attachment attachment = attachmentRepository.findById(id)
-                .orElseThrow(() -> new FileNotFountException("Attachment not found with id: " + id));
+                .orElseThrow(() -> {
+                    log.warn("Attachment not found with ID: {}", id);
+                    return new FileNotFountException("Attachment not found with id: " + id);
+                });
 
         deletePhysicalFile(attachment.getPath());
         attachmentRepository.delete(attachment);
+        log.info("Attachment with ID {} deleted", id);
     }
+
 
     private Attachment saveFileToStorage(MultipartFile file) throws AttachmentSaveException {
         try {
@@ -186,8 +174,10 @@ public class AttachmentServiceImpl implements AttachmentService {
         try {
             if (Files.exists(path)) {
                 Files.delete(path);
+                log.info("Deleted physical file: {}", pathStr);
             }
         } catch (IOException e) {
+            log.error("Error deleting file: {}", pathStr, e);
             throw new FileDeletionException("Error deleting file: " + pathStr);
         }
     }
@@ -220,13 +210,23 @@ public class AttachmentServiceImpl implements AttachmentService {
         String contentType = file.getContentType();
         String filename = file.getOriginalFilename();
 
+        if (filename != null && (filename.contains("..") || filename.contains("/") || filename.contains("\\"))) {
+            throw new InvalidImageFileException("Invalid file name");
+        }
+
+        log.debug("Validating file: {}", filename);
+
         if (contentType == null || !contentType.startsWith("image/")) {
+            log.warn("Invalid content type: {}", contentType);
             throw new InvalidImageFileException("Only image files are allowed.");
         }
 
         if (filename == null ||
                 !(filename.endsWith(".png") || filename.endsWith(".jpg") || filename.endsWith(".jpeg"))) {
+            log.warn("Invalid file extension: {}", filename);
             throw new InvalidImageFileException("Allowed formats: .png, .jpg, .jpeg");
         }
+
+        log.debug("File validated: {}", filename);
     }
 }

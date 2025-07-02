@@ -1,6 +1,7 @@
 package uz.pdp.backend.olxapp.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -25,6 +26,7 @@ import uz.pdp.backend.olxapp.repository.ProductRepository;
 import java.io.IOException;
 import java.util.*;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService {
@@ -38,6 +40,9 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public PageDTO<ProductDTO> read(Integer page, Integer size) {
+
+        log.info("Fetching all products. Page: {}, Size: {}", page, size);
+
         Sort sort = Sort.by(LongIdAbstract.Fields.id);
         PageRequest pageRequest = PageRequest.of(page, size, sort);
 
@@ -59,6 +64,8 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductDTO read(Long id) {
 
+        log.info("Fetching product by ID: {}", id);
+
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + id, HttpStatus.NOT_FOUND));
 
@@ -68,6 +75,9 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ProductDTO increaseViewCount(Long id) {
+
+        log.info("Increasing view count for product ID: {}", id);
+
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + id, HttpStatus.NOT_FOUND));
 
@@ -81,11 +91,19 @@ public class ProductServiceImpl implements ProductService {
     @Transactional // Yangi obyekt va unga bog'liq boshqa obyektlarni saqlash uchun tranzaksiya muhim
     public ProductDTO save(ProductReqDTO productReqDTO, List<MultipartFile> images) {
 
+        log.info("Creating new product with title: {}", productReqDTO.getTitle());
+
         if (images == null || images.isEmpty() || images.size() > 8) {
+            log.warn("Invalid image count: {}", (images == null ? 0 : images.size()));
             throw new IllegalArgumentException("At least one image is required to create a product.");
         }
 
+        log.debug("Uploading {} image(s)", images.size());
+
         List<AttachmentDTO> uploadAttachments = attachmentService.upload(images);
+
+        log.debug("Saving main image with identifier: {}", productReqDTO.getMainImageIdentifier());
+        log.debug("Resolving category with ID: {}", productReqDTO.getCategoryId());
 
         List<Attachment> attachments = uploadAttachments.stream().map(attachmentMapper::toEntity).toList();
 
@@ -149,6 +167,10 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional(rollbackFor = Exception.class) // Fayl operatsiyalari uchun Exception'ni qo'shib qo'yamiz
     public ProductDTO updateProduct(Long productId, ProductUpdateDTO dto, List<MultipartFile> newImages) throws IOException {
+
+        log.info("Updating product ID: {}", productId);
+        log.debug("New title: {}, price: {}", dto.getTitle(), dto.getPrice());
+
         // 1. Product'ni bazadan topamiz
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + productId, HttpStatus.NOT_FOUND));
@@ -177,6 +199,9 @@ public class ProductServiceImpl implements ProductService {
 
         // 4. O'chirilishi kerak bo'lgan rasmlarni aniqlash va o'chirish (Agar DTO'da o'chiriladigan rasmlar ID'si kelsa)
         if (dto.getImagesToDelete() != null && !dto.getImagesToDelete().isEmpty()) {
+
+            log.debug("Images to delete: {}", dto.getImagesToDelete());
+
             List<ProductImage> imagesToRemove = new ArrayList<>();
             for (ProductImage productImage : product.getProductImages()) {
                 if (dto.getImagesToDelete().contains(productImage.getAttachment().getId())) {
@@ -190,6 +215,9 @@ public class ProductServiceImpl implements ProductService {
 
         // 5. Yangi rasmlarni qo'shish
         if (newImages != null && !newImages.isEmpty()) {
+
+            log.debug("New images count: {}", newImages.size());
+
             // AttachmentService fayllarni yuklab, Attachment entity'larini qaytaradi
             List<Attachment> savedAttachments = attachmentService.saveAttachments(newImages); // Fayllarni saqlab, Attachment listini olamiz
 
@@ -220,6 +248,9 @@ public class ProductServiceImpl implements ProductService {
      * @param mainImageIdentifier Asosiy rasm bo'lishi kerak bo'lgan attachment ID'si yoki fayl nomi
      */
     private void updateMainImage(Product product, String mainImageIdentifier) {
+
+        log.debug("Updating main image for product");
+
         if (mainImageIdentifier == null || mainImageIdentifier.isBlank()) {
             // Agar asosiy rasm belgilanmagan bo'lsa, mavjud rasmlardan birinchisini asosiy qilamiz
             if (!product.getProductImages().isEmpty()) {
@@ -259,6 +290,8 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     public void updateStatus(Long id, boolean active) {
 
+        log.info("Updating active status for product ID: {} to {}", id, active);
+
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + id, HttpStatus.NOT_FOUND));
 
@@ -283,6 +316,8 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public void deleteProduct(Long id) {
 
+        log.info("Deleting product ID: {}", id);
+
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + id, HttpStatus.NOT_FOUND));
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -304,6 +339,8 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public void approveProduct(Long id) {
+
+        log.info("Approving product ID: {}", id);
 
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + id, HttpStatus.NOT_FOUND));
@@ -360,6 +397,9 @@ public class ProductServiceImpl implements ProductService {
      * Bu metodni ham save, ham update metodlarida qayta ishlatish mumkin.
      */
     public static void saveMainImage(List<Attachment> attachments, String mainImageIdentifier, AttachmentRepository attachmentRepository) {
+
+        log.debug("Marking main image from identifier: {}", mainImageIdentifier);
+
         if (attachments == null || attachments.isEmpty()) {
             return;
         }
