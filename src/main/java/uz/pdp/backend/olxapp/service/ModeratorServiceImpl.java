@@ -32,7 +32,7 @@ public class ModeratorServiceImpl implements ModeratorService {
     @Override
     public PageDTO<ModeratedProductDTO> getAll(Pageable pageable) {
 
-        Page<Product> unapprovedProducts = productRepository.findAllByIsApproved(pageable, Status.PENDING_REVIEW);
+        Page<Product> unapprovedProducts = productRepository.findAllByStatus(pageable, Status.PENDING_REVIEW);
 
         return new PageDTO<>(
                 unapprovedProducts.getContent().stream().

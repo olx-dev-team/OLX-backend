@@ -21,6 +21,7 @@ import uz.pdp.backend.olxapp.enums.Status;
 import uz.pdp.backend.olxapp.exception.EntityNotFoundException;
 import uz.pdp.backend.olxapp.exception.IllegalActionException;
 import uz.pdp.backend.olxapp.mapper.ProductMapper;
+import uz.pdp.backend.olxapp.mapper.utils.ProductUtilsMapper;
 import uz.pdp.backend.olxapp.payload.*;
 import uz.pdp.backend.olxapp.repository.AttachmentRepository;
 import uz.pdp.backend.olxapp.repository.CategoryRepository;
@@ -40,6 +41,7 @@ public class ProductServiceImpl implements ProductService {
     private final AttachmentService attachmentService;
     private final CategoryRepository categoryRepository;
     private final AttachmentRepository attachmentRepository;
+    private final ProductUtilsMapper productUtilsMapper;
 
     @Override
     public PageDTO<ProductDTO> read(Integer page, Integer size) {
@@ -479,7 +481,7 @@ public class ProductServiceImpl implements ProductService {
             throw new AccessDeniedException("You do not have permission to view the status of this product.");
         }
 
-        return mapToModerationStatusDTO(product);
+        return productUtilsMapper.mapToModerationStatusDTO(product);
     }
 
 
@@ -491,53 +493,22 @@ public class ProductServiceImpl implements ProductService {
         Page<Product> rejectedProductPages = productRepository
                 .findUserProductsByStatus(currentUser, Status.REJECTED, pageRequest);
 
-        Page<ProductModerationListDTO> map = rejectedProductPages.map(this::mapToRejectedProductListItemDTO);
+        Page<ProductModerationListDTO> map = rejectedProductPages.map(productUtilsMapper::mapToRejectedProductListItemDTO);
 
-        return toPageDTO(map);
-
-
-    }
-
-    private ProductModerationListDTO mapToRejectedProductListItemDTO(Product product) {
-        return ProductModerationListDTO.builder()
-                .id(product.getId())
-                .title(product.getTitle())
-                .rejectionReasons(product.getRejectionReasons())
-                .mainImageUrl(getMainImageUrl(product))
-                .build();
-    }
-
-    // Вспомогательный метод для получения URL главной картинки. Тоже не меняется.
-    private String getMainImageUrl(Product product) {
-        if (product.getProductImages() == null || product.getProductImages().isEmpty()) {
-            return null; // или URL картинки-заглушки
-        }
-        ProductImage mainImage = product.getProductImages().get(0);
-        return "/api/attachments/" + mainImage.getId(); // Пример URL
-    }
-
-    // Универсальный конвертер из Page в твой PageDTO. Не меняется.
-    private <T> PageDTO<T> toPageDTO(Page<T> springPage) {
         return new PageDTO<>(
-                springPage.getContent(),
-                springPage.getNumber(),
-                springPage.getSize(),
-                springPage.getTotalElements(),
-                springPage.getTotalPages(),
-                springPage.isLast(),
-                springPage.isFirst(),
-                springPage.getNumberOfElements(),
-                springPage.isEmpty()
+                map.getContent(),
+                map.getNumber(),
+                map.getSize(),
+                map.getTotalElements(),
+                map.getTotalPages(),
+                map.isLast(),
+                map.isFirst(),
+                map.getNumberOfElements(),
+                map.isEmpty()
         );
-    }
 
 
-    private ProductModerationStatusDTO mapToModerationStatusDTO(Product product) {
-        return ProductModerationStatusDTO.builder()
-                .productId(product.getId())
-                .status(product.getStatus())
-                .rejectionReasons(product.getRejectionReasons())
-                .build();
     }
+
 
 }
