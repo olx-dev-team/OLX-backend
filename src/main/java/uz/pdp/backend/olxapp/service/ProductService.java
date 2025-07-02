@@ -1,6 +1,7 @@
 package uz.pdp.backend.olxapp.service;
 
 import org.springframework.data.domain.Pageable;
+import uz.pdp.backend.olxapp.entity.User;
 import uz.pdp.backend.olxapp.payload.*;
 
 public interface ProductService {
@@ -27,4 +28,8 @@ public interface ProductService {
     PageDTO<ProductDTO> getRejectedProducts(Integer page, Integer size);
 
     PageDTO<ProductDTO> searchProducts(ProductFilterDTO filterDTO, Integer page, Integer size);
+
+    ProductModerationStatusDTO getModerationStatus(Long productId, User currentUser);
+
+    PageDTO<ProductModerationListDTO> findMyRejectedProduct(User currentUser, Integer page, Integer size);
 }
