@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
 @RequestMapping("/api/open")
-public class homeController {
+public class HomeController {
 
     @GetMapping("/product")
     public String getHome() {

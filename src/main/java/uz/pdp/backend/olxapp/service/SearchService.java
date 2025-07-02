@@ -5,6 +5,6 @@ import uz.pdp.backend.olxapp.payload.PageDTO;
 import uz.pdp.backend.olxapp.payload.ProductDTO;
 
 public interface SearchService {
-    PageDTO<?> search(FilterDTO filterDTO, Integer page, Integer size);
+//    PageDTO<?> search(FilterDTO filterDTO, Integer page, Integer size);
 
 }

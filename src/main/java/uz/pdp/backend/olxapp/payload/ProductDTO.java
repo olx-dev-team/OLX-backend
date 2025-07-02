@@ -1,17 +1,16 @@
 package uz.pdp.backend.olxapp.payload;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import uz.pdp.backend.olxapp.entity.*;
+import uz.pdp.backend.olxapp.enums.Status;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,7 +40,7 @@ public class ProductDTO implements Serializable {
     @PositiveOrZero(message = "Price must be positive or zero")
     private BigDecimal price;
 
-    private Boolean isApproved = false;
+    /* private Boolean isApproved = false; */ private Status status;
 
     private Integer viewCounter = 0;
 
@@ -49,7 +48,7 @@ public class ProductDTO implements Serializable {
 
     private List<FavoritesDTO> favorites = new ArrayList<>();
 
-    private List<ProductImageDto> productImages = new ArrayList<>();
+    private List<ProductImageDTO> productImages = new ArrayList<>();
 
     private Long createdById;
 

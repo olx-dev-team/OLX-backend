@@ -5,6 +5,7 @@ import org.springframework.data.domain.Pageable;
 import uz.pdp.backend.olxapp.payload.ChatDTO;
 import uz.pdp.backend.olxapp.payload.CreateMessageDTO;
 import uz.pdp.backend.olxapp.payload.MessageDTO;
+import uz.pdp.backend.olxapp.payload.PageDTO;
 
 import java.util.List;
 
@@ -16,6 +17,5 @@ public interface ChatService {
 
     MessageDTO sendMessage(Long chatId, Long senderId, CreateMessageDTO createMessageDTO);
 
-    Page<MessageDTO> getChatMessages(Long chatId, Long userId, Pageable pageable);
-
+    PageDTO<MessageDTO> getChatMessages(Long chatId, Long userId, Pageable pageable);
 }

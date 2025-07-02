@@ -1,8 +1,11 @@
 package uz.pdp.backend.olxapp.service;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import uz.pdp.backend.olxapp.entity.Category;
 import uz.pdp.backend.olxapp.exception.ConflictException;
 import uz.pdp.backend.olxapp.exception.EntityNotFoundException;
@@ -14,6 +17,7 @@ import uz.pdp.backend.olxapp.repository.CategoryRepository;
 import java.util.Collections;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CategoryServiceImpl implements CategoryService {
@@ -23,7 +27,8 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public List<CategoryDTO> getAllCategories() {
 
-        List<Category> categories = categoryRepository.findAll();
+        log.info("Getting all categories");
+        List<Category> categories = categoryRepository.getCategory();
         return categories.stream().map(categoryMapper::toDto).toList();
 
     }
@@ -37,6 +42,7 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @Transactional
     public CategoryDTO save(CategoryReqDTO categoryReqDTO) {
 
         Category parentCategory = null;
@@ -62,7 +68,8 @@ public class CategoryServiceImpl implements CategoryService {
 
 
     @Override
-    public CategoryDTO update(Long id, CategoryDTO categoryDTO) {
+    @Transactional
+    public CategoryDTO update(Long id, @Valid CategoryReqDTO categoryDTO) {
 
         Category category = categoryRepository.findByIdOrThrow(id);
 
@@ -74,9 +81,18 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @Transactional
     public CategoryDTO delete(Long id) {
 
         Category category = categoryRepository.findByIdOrThrow(id);
+
+        if (!category.getChildren().isEmpty()) {
+            throw new EntityNotFoundException("Can't delete category with child categories!", HttpStatus.CONFLICT);
+        }
+
+        if (!category.getProducts().isEmpty()) {
+            throw new EntityNotFoundException("Can't delete category with products!", HttpStatus.CONFLICT);
+        }
 
         categoryRepository.delete(category);
         return categoryMapper.toDto(category);

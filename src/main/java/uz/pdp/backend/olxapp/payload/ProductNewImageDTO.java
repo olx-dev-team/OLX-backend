@@ -9,6 +9,6 @@ import org.springframework.web.multipart.MultipartFile;
 public class ProductNewImageDTO {
 
     private MultipartFile file;
-    private Boolean main;
+    private boolean main;
 
 }

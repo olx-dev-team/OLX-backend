@@ -3,6 +3,7 @@ package uz.pdp.backend.olxapp.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.FieldNameConstants;
 import uz.pdp.backend.olxapp.entity.abstractEntity.LongIdAbstract;
 
 import java.time.LocalDateTime;
@@ -11,6 +12,7 @@ import java.time.LocalDateTime;
 @Setter
 @Entity
 @Table(name = "messages")
+@FieldNameConstants
 public class Message extends LongIdAbstract {
     // К какому чату относится сообщение
     @ManyToOne(optional = false)

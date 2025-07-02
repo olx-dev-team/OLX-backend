@@ -36,17 +36,26 @@ public class WebMvcConfig implements WebMvcConfigurer {
     }
 
 
-    @Bean
-    public WebMvcConfigurer corsConfigurer() {
-        return new WebMvcConfigurer() {
-            @Override
-            public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/**")
-                        .allowedOrigins("http://176.57.188.165:9090")
-                        .allowedMethods("*")
-                        .allowedHeaders("*")
-                        .allowCredentials(true);
-            }
-        };
+    //    @Bean
+//    public WebMvcConfigurer corsConfigurer() {
+//        return new WebMvcConfigurer() {
+//            @Override
+//            public void addCorsMappings(CorsRegistry registry) {
+//                registry.addMapping("/**")
+//                        .allowedOrigins("*")
+//                        .allowedMethods("*")
+//                        .allowedHeaders("*")
+//                        .allowCredentials(false);
+//            }
+//        };
+//    }
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/**") // barcha endpointlarga
+                .allowedOrigins("http://192.168.1.213:4200") // frontend IP + port
+                .allowedMethods("*")
+                .allowedHeaders("*")
+                .allowCredentials(true);
     }
+
 }

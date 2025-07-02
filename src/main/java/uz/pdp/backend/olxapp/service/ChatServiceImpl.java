@@ -12,10 +12,12 @@ import uz.pdp.backend.olxapp.entity.Product;
 import uz.pdp.backend.olxapp.entity.User;
 import uz.pdp.backend.olxapp.exception.EntityNotFoundException;
 import uz.pdp.backend.olxapp.exception.IllegalActionException;
+import uz.pdp.backend.olxapp.mapper.ChatMapper;
 import uz.pdp.backend.olxapp.mapper.ChatMapperImpl;
 import uz.pdp.backend.olxapp.payload.ChatDTO;
 import uz.pdp.backend.olxapp.payload.CreateMessageDTO;
 import uz.pdp.backend.olxapp.payload.MessageDTO;
+import uz.pdp.backend.olxapp.payload.PageDTO;
 import uz.pdp.backend.olxapp.repository.ChatRepository;
 import uz.pdp.backend.olxapp.repository.MessageRepository;
 import uz.pdp.backend.olxapp.repository.ProductRepository;
@@ -38,6 +40,7 @@ public class ChatServiceImpl implements ChatService {
     private final ChatRepository chatRepository;
     private final ChatMapperImpl chatMapperImpl;
     private final MessageRepository messageRepository;
+    private final ChatMapper chatMapper;
 
 
     /**
@@ -155,7 +158,7 @@ public class ChatServiceImpl implements ChatService {
      * @throws SecurityException       если пользователь не является участником чата.
      */
     @Transactional
-    public Page<MessageDTO> getChatMessages(Long chatId, Long userId, Pageable pageable) {
+    public PageDTO<MessageDTO> getChatMessages(Long chatId, Long userId, Pageable pageable) {
         Chat chat = chatRepository.findById(chatId)
                 .orElseThrow(() -> new EntityNotFoundException("Chat not found with id: " + chatId, HttpStatus.NOT_FOUND));
 
@@ -173,7 +176,19 @@ public class ChatServiceImpl implements ChatService {
         // Spring Data JPA отследит изменения и сохранит их при коммите транзакции
 
         // Конвертируем Page<Message> в Page<MessageDTO>
-        return messagePage.map(chatMapperImpl::toMessageDTO);
+//        return messagePage.map(chatMapperImpl::toMessageDTO);
+
+        return new PageDTO<>(
+                messagePage.getContent().stream().map(chatMapper::toMessageDTO).toList(),
+                messagePage.getNumber(),
+                messagePage.getSize(),
+                messagePage.getTotalElements(),
+                messagePage.getTotalPages(),
+                messagePage.isLast(),
+                messagePage.isFirst(),
+                messagePage.getNumberOfElements(),
+                messagePage.isEmpty()
+        );
     }
 
 

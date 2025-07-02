@@ -13,6 +13,7 @@ import uz.pdp.backend.olxapp.entity.Favorites;
 import uz.pdp.backend.olxapp.entity.Product;
 import uz.pdp.backend.olxapp.entity.User;
 import uz.pdp.backend.olxapp.entity.abstractEntity.AbstractEntity;
+import uz.pdp.backend.olxapp.enums.Status;
 import uz.pdp.backend.olxapp.exception.EntityNotFoundException;
 import uz.pdp.backend.olxapp.mapper.FavoritesMapper;
 import uz.pdp.backend.olxapp.payload.FavoriteReqDTO;
@@ -21,6 +22,7 @@ import uz.pdp.backend.olxapp.payload.PageDTO;
 import uz.pdp.backend.olxapp.repository.FavoritesRepository;
 import uz.pdp.backend.olxapp.repository.ProductRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -31,6 +33,7 @@ public class FavoritesServiceImpl implements FavoritesService {
     private final FavoritesMapper favoritesMapper;
     private final ProductRepository productRepository;
 
+    /// tekshirildi
     @Override
     public PageDTO<FavoritesDTO> getAllFavorites(Integer page, Integer size) {
 
@@ -57,6 +60,7 @@ public class FavoritesServiceImpl implements FavoritesService {
         );
     }
 
+    ///  teskshirildi
     @Override
     public FavoritesDTO getByIdFavorites(Long id) {
 
@@ -76,6 +80,7 @@ public class FavoritesServiceImpl implements FavoritesService {
 
     }
 
+    ///  tekshirildi
     @Override
     public void addFavorite(FavoriteReqDTO favoriteReqDTO) {
 
@@ -84,7 +89,10 @@ public class FavoritesServiceImpl implements FavoritesService {
             throw new AccessDeniedException("User is not authenticated");
         }
 
-        Product product = productRepository.findById(favoriteReqDTO.getProductId())
+//        Product product = productRepository.findById(favoriteReqDTO.getProductId())
+//                .orElseThrow(() -> new EntityNotFoundException("Product with id " + favoriteReqDTO.getProductId() + " not found", HttpStatus.NOT_FOUND));
+
+        Product product = productRepository.findByIdAndStatus(favoriteReqDTO.getProductId(), List.of(Status.ACTIVE))
                 .orElseThrow(() -> new EntityNotFoundException("Product with id " + favoriteReqDTO.getProductId() + " not found", HttpStatus.NOT_FOUND));
 
         Optional<Favorites> existingFavorite = favoritesRepository.findByUserIdAndProductId(user.getId(), product.getId());

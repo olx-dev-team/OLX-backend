@@ -14,14 +14,5 @@ public class SearchController {
 
     private final SearchService searchService;
 
-    @GetMapping("/open/v1/search")
-    public PageDTO<?> search( FilterDTO filterDTO,
-                             @RequestParam(defaultValue = "0") Integer page,
-                             @RequestParam(defaultValue = "10") Integer size) {
-
-        PageDTO<?> search = searchService.search(filterDTO, page, size);
-        return search;
-
-    }
 
 }

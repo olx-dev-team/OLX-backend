@@ -16,7 +16,6 @@ import uz.pdp.backend.olxapp.enums.Role;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Entity(name = "users")
 @Getter
@@ -62,7 +61,7 @@ public class User extends LongIdAbstract implements UserDetails {
     @OneToMany(mappedBy = "sender", fetch = FetchType.LAZY)
     private List<Notification> sentNotifications;
 
-    @ManyToMany(fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "createdBy", fetch = FetchType.LAZY)
     private List<Product> products;
 
     @OneToMany(mappedBy = "userOne")

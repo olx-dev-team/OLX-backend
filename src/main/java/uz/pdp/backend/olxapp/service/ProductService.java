@@ -1,9 +1,7 @@
 package uz.pdp.backend.olxapp.service;
 
-import uz.pdp.backend.olxapp.payload.PageDTO;
-import uz.pdp.backend.olxapp.payload.ProductReqDTO;
-import uz.pdp.backend.olxapp.payload.ProductDTO;
-import uz.pdp.backend.olxapp.payload.ProductUpdateDTO;
+import org.springframework.data.domain.Pageable;
+import uz.pdp.backend.olxapp.payload.*;
 
 public interface ProductService {
     PageDTO<ProductDTO> read(Integer page, Integer size);
@@ -14,17 +12,19 @@ public interface ProductService {
 
     ProductDTO save(ProductReqDTO productDTO);
 
-    ProductDTO updateProduct(Long id, ProductUpdateDTO productDTO) ;
+    ProductDTO updateProduct(Long id, ProductUpdateDTO productDTO);
 
-    void updateStatus(Long id, boolean active);
+    void updateStatus(Long id);
 
     void deleteProduct(Long id);
 
-    PageDTO<ProductDTO> getUserProductsIsApprovedTrue(Integer page, Integer size);
+    PageDTO<ProductDTO> getMyProductsIsActive(Integer page, Integer size);
 
     PageDTO<ProductDTO> getWaitingProducts(Integer page, Integer size);
 
     PageDTO<ProductDTO> getInactiveProducts(Integer page, Integer size);
 
     PageDTO<ProductDTO> getRejectedProducts(Integer page, Integer size);
+
+    PageDTO<ProductDTO> searchProducts(ProductFilterDTO filterDTO, Integer page, Integer size);
 }
