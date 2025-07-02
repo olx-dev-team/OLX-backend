@@ -4,6 +4,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,6 +20,7 @@ import uz.pdp.backend.olxapp.service.UserServiceImpl;
 
 @RestController
 @RequestMapping("/api/open/auth")
+@Tag(name = "Authentication Controller", description = "Endpoints for user registration and login")
 public class AuthController {
 
     private final UserService userService;
@@ -38,24 +42,30 @@ public class AuthController {
      * @param loginDTO The DTO containing the username and password of the user to log in.
      * @return A JWT token representing the authenticated user's session.
      */
-    @Operation(summary = "Login", description = "Authentication user with username and password")
-    @PostMapping("/login")
-    public TokenDTO login(
-            @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "Login credentials",
+    @Operation(
+            summary = "User Login",
+            description = "Authenticate user with username and password",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     required = true,
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = LoginDTO.class),
                             examples = @ExampleObject(
                                     name = "Login Example",
-                                    value = "{ \"username\": \"john_doe\", \"password\": \"password123\" }"
+                                    summary = "Typical login example",
+                                    value = """
+                                    {
+                                        "username": "john_doe",
+                                        "password": "password123"
+                                    }
+                                    """
                             )
                     )
-            ) @Valid @RequestBody LoginDTO loginDTO) {
-
+            )
+    )
+    @PostMapping("/login")
+    public TokenDTO login(@Valid @RequestBody LoginDTO loginDTO) {
         return userService.login(loginDTO);
-
     }
 
     /**
@@ -72,10 +82,33 @@ public class AuthController {
      * @param registerDto The DTO containing the registration details.
      * @return A JWT token representing the newly registered user.
      */
+    @Operation(
+            summary = "User Registration",
+            description = "Register a new user and return JWT token",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    required = true,
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = RegisterDTO.class),
+                            examples = @ExampleObject(
+                                    name = "Register Example",
+                                    summary = "Typical registration payload",
+                                    value = """
+                        {
+                            "firstName": "John",
+                            "lastName": "Doe",
+                            "username": "johndoe",
+                            "password": "StrongP@ssw0rd!",
+                            "email": "john@example.com",
+                            "phoneNumber": "+998901234567"
+                        }
+                        """
+                            )
+                    )
+            )
+    )
     @PostMapping("/register")
     public TokenDTO register(@Valid @RequestBody RegisterDTO registerDto) {
-
         return userService.register(registerDto);
-
     }
 }
