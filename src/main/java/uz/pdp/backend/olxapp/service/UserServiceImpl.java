@@ -133,7 +133,7 @@ public class UserServiceImpl implements UserService {
         Sort sort = Sort.by(LongIdAbstract.Fields.id).descending();
         PageRequest pageRequest = PageRequest.of(page, size, sort);
 
-        Page<User> pageResult = userRepository.findByActiveFalse(false, pageRequest);
+        Page<User> pageResult = userRepository.getUsersByActive(false, pageRequest);
 
         return new PageDTO<>(
                 pageResult.getContent().stream().map(userMapper::toDto).toList(),

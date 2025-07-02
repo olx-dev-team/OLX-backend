@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import uz.pdp.backend.olxapp.entity.*;
+import uz.pdp.backend.olxapp.enums.Status;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -39,7 +40,7 @@ public class ProductDTO implements Serializable {
     @PositiveOrZero(message = "Price must be positive or zero")
     private BigDecimal price;
 
-    private Boolean isApproved = false;
+    /* private Boolean isApproved = false; */ private Status status;
 
     private Integer viewCounter = 0;
 

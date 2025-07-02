@@ -34,30 +34,75 @@ public class ProductController {
         return productService.increaseViewCount(id);
     }
 
+    /**
+     * Test successfully!
+     *
+     * @param page - defaultValue = "0"
+     * @param size - defaultValue = "10"
+     * @return page of products with userId == authUser.getId() and isActive == true
+     */
     @GetMapping("/close/v1/my-products")
     public PageDTO<ProductDTO> getUserProductsIsApprovedTrue(@RequestParam(defaultValue = "0") Integer page,
                                                              @RequestParam(defaultValue = "10") Integer size) {
         return productService.getMyProductsIsActive(page, size);
     }
 
+    /**
+     * Test successfully!
+     *
+     * @param page - defaultValue = "0"
+     * @param size - defaultValue = "10"
+     * @return page of products with status == WAITING
+     */
     @GetMapping("/close/v1/products/waiting")
     public PageDTO<ProductDTO> getWaitingProducts(@RequestParam(defaultValue = "0") Integer page,
                                                   @RequestParam(defaultValue = "10") Integer size) {
         return productService.getWaitingProducts(page, size);
     }
 
+    /**
+     * Test successfully!
+     *
+     * @param page - defaultValue = "0"
+     * @param size - defaultValue = "10"
+     * @return page of products with userId == authUser.getId() and isActive == false
+     */
     @GetMapping("/close/v1/products/inactive")
     public PageDTO<ProductDTO> getInactiveProducts(@RequestParam(defaultValue = "0") Integer page,
                                                    @RequestParam(defaultValue = "10") Integer size) {
         return productService.getInactiveProducts(page, size);
     }
 
+    /**
+     * Test successfully!
+     *
+     * @param page - defaultValue = "0"
+     * @param size - defaultValue = "10"
+     * @return page of products with userId == authUser.getId() and isActive == false and status == REJECTED
+     */
     @GetMapping("/close/v1/products/rejected")
     public PageDTO<ProductDTO> getRejectedProducts(@RequestParam(defaultValue = "0") Integer page,
                                                    @RequestParam(defaultValue = "10") Integer size) {
         return productService.getRejectedProducts(page, size);
     }
 
+    /**
+     * Test successfully!
+     *
+     * @param productReqDTO - DTO for creating a new product {
+     *                         title: "String",
+     *                         description: "String",
+     *                         price: Double,
+     *                         categoryId: Long,
+     *                         imageDTOS: [
+     *                             {
+     *                                 file: File
+     *                             },
+     *                             ...
+     *                         ]
+     * }
+     * @return created product
+     */
     @PreAuthorize(value = "hasAnyRole('USER','ADMIN')")
     @PostMapping(value = "/close/v1/products", consumes = {"multipart/form-data"})
     public ResponseEntity<ProductDTO> createProduct(@ModelAttribute @Valid ProductReqDTO productReqDTO) {
@@ -75,6 +120,11 @@ public class ProductController {
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(updatedProduct);
     }
 
+    /**
+     * Test successfully!
+     *
+     * @param id - product id to change the status
+     */
     @PreAuthorize(value = "hasRole('USER')")
     @PatchMapping("/close/v1/products/{id}/status")
     public ResponseEntity<Void> updateProductStatus(
@@ -82,11 +132,14 @@ public class ProductController {
 
         productService.updateStatus(id);
 
-        // Muvaffaqiyatli o'zgarganda, odatda bo'sh javob (204 No Content)
-        // yoki yangilangan obyektni qaytarish mumkin. Bo'sh javob samaraliroq.
         return ResponseEntity.noContent().build();
     }
 
+    /**
+     * Test successfully!
+     *
+     * @param id - product id to delete it from database
+     */
     @PreAuthorize(value = "hasRole('USER')")
     @DeleteMapping("/close/v1/products/{id}")
     public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
@@ -96,6 +149,17 @@ public class ProductController {
 
     }
 
+    /**
+     * Test successfully!
+     *
+     * @param filterDTO - DTO for filtering products by title, category and price range {
+     *                    searchText: "String",
+     *                    categoryId: Long,
+     *                    minPrice: Double,
+     *                    maxPrice: Double
+     *                }
+     * @return page of filtered products
+     */
     @GetMapping("/open/v1/search")
     public ResponseEntity<PageDTO<ProductDTO>> searchProducts(
             ProductFilterDTO filterDTO,

@@ -15,6 +15,13 @@ public class FavoritesController {
 
     private final FavoritesService favoritesService;
 
+    /**
+     * Test successfully!
+     *
+     * @param page page number default is 0
+     * @param size page size default is 10
+     * @return page dto of favorites
+     */
     @GetMapping
     public PageDTO<FavoritesDTO> getFavorites(
             @RequestParam(defaultValue = "0") Integer page,
@@ -24,6 +31,12 @@ public class FavoritesController {
 
     }
 
+    /**
+     * Test successfully!
+     *
+     * @param id - with favorite id parameter
+     * @return favorites dto by given id
+     */
     @GetMapping("/{id}")
     public FavoritesDTO getFavorites(@PathVariable Long id) {
 
@@ -31,6 +44,11 @@ public class FavoritesController {
 
     }
 
+    /**
+     * Test successfully!
+     *
+     * @param favoriteReqDTO - request body for adding new favorite
+     */
     @PostMapping
     public ResponseEntity<?> addFavorite(@RequestBody FavoriteReqDTO favoriteReqDTO) {
 
@@ -38,8 +56,13 @@ public class FavoritesController {
         return ResponseEntity.accepted().build();
     }
 
+    /**
+     * Test successfully!
+     *
+     * @param id - with favorite id parameter
+     */
     @DeleteMapping("/{id}")
-    public void deleteFavorite(@PathVariable Long id){
+    public void deleteFavorite(@PathVariable Long id) {
         favoritesService.deleteFavorite(id);
     }
 
