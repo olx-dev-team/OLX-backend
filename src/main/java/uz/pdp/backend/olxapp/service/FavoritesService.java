@@ -9,7 +9,7 @@ public interface FavoritesService {
 
     FavoritesDTO getByIdFavorites(Long id);
 
-    String addFavorite(FavoriteReqDTO favoriteReqDTO);
+    void addFavorite(FavoriteReqDTO favoriteReqDTO);
 
     void deleteFavorite(Long id);
 }
