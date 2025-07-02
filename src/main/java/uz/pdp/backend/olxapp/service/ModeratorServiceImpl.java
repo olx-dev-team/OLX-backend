@@ -2,6 +2,7 @@ package uz.pdp.backend.olxapp.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -20,6 +21,8 @@ import java.util.stream.Collectors;
 /**
  * Created by Avazbek on 26/06/25 13:54
  */
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ModeratorServiceImpl implements ModeratorService {
@@ -53,12 +56,17 @@ public class ModeratorServiceImpl implements ModeratorService {
     @Override
     @Transactional
     public ModeratedProductDTO approveProduct(Long productId) {
+        log.info("Attempting to approve product with ID: {}", productId);
 
-        Product product = productRepository.findById(productId).orElseThrow(() ->
-                new EntityNotFoundException("Product not found with id: " + productId, HttpStatus.NOT_FOUND));
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> {
+                    log.warn("Product not found for approval: ID {}", productId);
+                    return new EntityNotFoundException("Product not found with id: " + productId, HttpStatus.NOT_FOUND);
+                });
 
         product.setStatus(Status.ACTIVE);
         productRepository.save(product);
+        log.info("Product approved successfully: ID {}, Title '{}'", product.getId(), product.getTitle());
 
         return new ModeratedProductDTO(
                 product.getId(),
@@ -70,24 +78,24 @@ public class ModeratorServiceImpl implements ModeratorService {
     @Override
     @Transactional
     public ModeratedProductDTO rejectProduct(Long productId, RejectionDTO rejectionDTO) {
+        log.info("Rejecting product ID {} with reasons: {}", productId, rejectionDTO.getReasons());
 
-        Product product = productRepository.findById(productId).orElseThrow(() ->
-                new EntityNotFoundException("Product not found with id: " + productId, HttpStatus.NOT_FOUND));
-
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> {
+                    log.warn("Product not found for rejection: ID {}", productId);
+                    return new EntityNotFoundException("Product not found with id: " + productId, HttpStatus.NOT_FOUND);
+                });
 
         product.setStatus(Status.REJECTED);
-
-
-
         product.setRejectionReasons(new HashSet<>(rejectionDTO.getReasons()));
-
         productRepository.save(product);
+
+        log.info("Product rejected: ID {}, Title '{}', Reasons {}", product.getId(), product.getTitle(), product.getRejectionReasons());
 
         return new ModeratedProductDTO(
                 product.getId(),
                 product.getTitle(),
                 product.getDescription()
         );
-
     }
 }

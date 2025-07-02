@@ -68,7 +68,6 @@ public class ProductSpecifications {
                 cb.like(cb.lower(root.get(Product.Fields.createdBy).get(User.Fields.username)), pattern),
                 cb.like(cb.lower(root.get(Product.Fields.createdBy).get(User.Fields.email)), pattern),
                 cb.like(cb.lower(root.get(Product.Fields.createdBy).get(User.Fields.phoneNumber)), pattern)
-                // qo‘shimcha: cb.like(cb.lower(root.get("createdBy").get("username")), pattern)
         );
     }
 

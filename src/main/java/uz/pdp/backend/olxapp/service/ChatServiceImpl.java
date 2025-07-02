@@ -2,6 +2,7 @@ package uz.pdp.backend.olxapp.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -31,6 +32,8 @@ import java.util.stream.Collectors;
 /**
  * Created by Avazbek on 23/06/25 20:22
  */
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ChatServiceImpl implements ChatService {
@@ -125,15 +128,23 @@ public class ChatServiceImpl implements ChatService {
 
     @Transactional
     public MessageDTO sendMessage(Long chatId, Long senderId, CreateMessageDTO createMessageDTO) {
+        log.info("User {} sending message to chat {}", senderId, chatId);
+
         Chat chat = chatRepository.findById(chatId)
-                .orElseThrow(() -> new EntityNotFoundException("Chat not found with id: " + chatId, HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> {
+                    log.warn("Chat with id {} not found", chatId);
+                    return new EntityNotFoundException("Chat not found", HttpStatus.NOT_FOUND);
+                });
 
         User sender = userRepository.findById(senderId)
-                .orElseThrow(() -> new EntityNotFoundException("Sender not found with id: " + senderId, HttpStatus.NOT_FOUND));
-
+                .orElseThrow(() -> {
+                    log.warn("Sender with id {} not found", senderId);
+                    return new EntityNotFoundException("Sender not found", HttpStatus.NOT_FOUND);
+                });
 
         if (!chat.getUserOne().getId().equals(senderId) && !chat.getUserTwo().getId().equals(senderId)) {
-            throw new SecurityException("User " + senderId + " is not a participant of chat " + chatId);
+            log.warn("User {} is not a participant of chat {}", senderId, chatId);
+            throw new SecurityException("User is not a participant of chat");
         }
 
         Message newMessage = new Message();
@@ -144,6 +155,7 @@ public class ChatServiceImpl implements ChatService {
         chat.getMessages().add(newMessage);
         chatRepository.save(chat);
 
+        log.info("Message sent successfully by user {}", senderId);
         return chatMapperImpl.toMessageDTO(newMessage);
     }
 

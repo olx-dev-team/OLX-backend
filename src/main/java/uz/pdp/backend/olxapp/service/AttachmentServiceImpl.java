@@ -38,8 +38,8 @@ public class AttachmentServiceImpl implements AttachmentService {
     @PostConstruct
     public void init() {
         BASE_FOLDER = baseFolderProperty;
+        log.info("AttachmentService initialized. Base folder set to: {}", BASE_FOLDER);
     }
-
     @Override
     public AttachmentDTO getByIdAttachment(Long id) {
         Attachment attachment = attachmentRepository.findById(id)
@@ -49,14 +49,18 @@ public class AttachmentServiceImpl implements AttachmentService {
 
     @Override
     public AttachmentDTO upload(MultipartFile file) {
+        log.info("Uploading single file: {}", file.getOriginalFilename());
         validateImage(file);
         Attachment attachment = saveFileToStorage(file);
         Attachment saved = attachmentRepository.save(attachment);
+        log.info("File successfully uploaded and saved with ID: {}", saved.getId());
         return attachmentMapper.toDto(saved);
     }
 
     @Override
     public List<AttachmentDTO> upload(List<MultipartFile> multipartFiles) throws AttachmentSaveException {
+
+        log.info("Uploading {} files...", multipartFiles.size());
 
 //        List<Attachment> attachments = multipartFiles.stream().map(this::saveFileToStorage).collect(Collectors.toList());
 //
@@ -65,14 +69,17 @@ public class AttachmentServiceImpl implements AttachmentService {
 
         List<Path> paths = new ArrayList<>();
         List<Attachment> attachments = new ArrayList<>();
-        for (MultipartFile file : multipartFiles) {
 
+        for (MultipartFile file : multipartFiles) {
             try {
+                log.debug("Validating file: {}", file.getOriginalFilename());
+                validateImage(file);
+
                 String originalFilename = file.getOriginalFilename();
                 long size = file.getSize();
                 String contentType = file.getContentType();
-
                 String extension = extractExtension(originalFilename);
+
                 Path directoryPath = buildDirectoryPath();
                 Files.createDirectories(directoryPath);
 
@@ -82,31 +89,22 @@ public class AttachmentServiceImpl implements AttachmentService {
                     Files.copy(inputStream, filePath);
                 }
 
-                Attachment attachment = new Attachment(
-                        originalFilename,
-                        contentType,
-                        size,
-                        filePath.toString()
-                );
-
+                Attachment attachment = new Attachment(originalFilename, contentType, size, filePath.toString());
                 Attachment saved = attachmentRepository.save(attachment);
+
                 paths.add(filePath);
                 attachments.add(saved);
-
+                log.info("File '{}' saved successfully as '{}'", originalFilename, filePath);
 
             } catch (IOException e) {
-
-                log.warn(e.getMessage());
+                log.error("Failed to save file: {}", file.getOriginalFilename(), e);
                 cleanupStoredFiles(paths);
-
+                throw new AttachmentSaveException("Error saving one of the files.");
             }
-
-
         }
 
+        log.info("All files uploaded successfully.");
         return attachments.stream().map(attachmentMapper::toDto).collect(Collectors.toList());
-
-
     }
 
     /**
@@ -114,24 +112,27 @@ public class AttachmentServiceImpl implements AttachmentService {
      * @param paths O'chirilishi kerak bo'lgan fayllar ro'yxati
      */
     private void cleanupStoredFiles(List<Path> paths) {
+        log.warn("Rolling back saved files due to error. Deleting {} files...", paths.size());
         for (Path path : paths) {
             try {
                 Files.deleteIfExists(path);
-                // Bu yerda log yozish mumkin, masalan: log.warn("Rollback due to error. Deleting file: {}", path);
+                log.info("Deleted file: {}", path);
             } catch (IOException ex) {
-                // Faylni o'chirishda xatolik bo'lsa, uni log'ga yozib qo'yamiz,
-                // lekin asosiy xatolikni "yutib yubormaslik" uchun yangi exception tashlamaymiz.
-                 log.error("Could not delete file {} during cleanup", path, ex);
+                log.error("Failed to delete file during cleanup: {}", path, ex);
             }
         }
     }
 
     @Override
     public void update(Long id, MultipartFile file) {
+        log.info("Updating attachment with ID: {}", id);
         validateImage(file);
 
         Attachment attachment = attachmentRepository.findById(id)
-                .orElseThrow(() -> new FileNotFountException("Attachment not found with id: " + id));
+                .orElseThrow(() -> {
+                    log.warn("Attachment not found for update: {}", id);
+                    return new FileNotFountException("Attachment not found with id: " + id);
+                });
 
         deletePhysicalFile(attachment.getPath());
         Attachment updated = saveFileToStorage(file);
@@ -142,26 +143,34 @@ public class AttachmentServiceImpl implements AttachmentService {
         attachment.setPath(updated.getPath());
 
         attachmentRepository.save(attachment);
+        log.info("Attachment with ID {} updated successfully.", id);
     }
 
     @Override
     public void deleteById(Long id) {
+        log.info("Deleting attachment with ID: {}", id);
         Attachment attachment = attachmentRepository.findById(id)
-                .orElseThrow(() -> new FileNotFountException("Attachment not found with id: " + id));
+                .orElseThrow(() -> {
+                    log.warn("Attachment not found for deletion: {}", id);
+                    return new FileNotFountException("Attachment not found with id: " + id);
+                });
 
         deletePhysicalFile(attachment.getPath());
         attachmentRepository.delete(attachment);
+        log.info("Attachment with ID {} deleted successfully.", id);
     }
 
     @Override
     public byte[] viewAttachment(Long id) throws IOException {
-
+        log.debug("Viewing attachment with ID: {}", id);
         Attachment attachment = attachmentRepository.findById(id)
-                .orElseThrow(() -> new FileNotFountException("Attachment not found with id: " + id));
+                .orElseThrow(() -> {
+                    log.warn("Attachment not found for viewing: {}", id);
+                    return new FileNotFountException("Attachment not found with id: " + id);
+                });
 
+        log.info("Returning byte content of attachment ID: {}", id);
         return Files.readAllBytes(Path.of(attachment.getPath()));
-
-
     }
 
     private Attachment saveFileToStorage(MultipartFile file) throws AttachmentSaveException {
@@ -169,25 +178,21 @@ public class AttachmentServiceImpl implements AttachmentService {
             String originalFilename = file.getOriginalFilename();
             long size = file.getSize();
             String contentType = file.getContentType();
-
             String extension = extractExtension(originalFilename);
+
             Path directoryPath = buildDirectoryPath();
             Files.createDirectories(directoryPath);
 
             Path filePath = generateUniqueFilePath(directoryPath, extension);
-
             try (InputStream inputStream = file.getInputStream()) {
                 Files.copy(inputStream, filePath);
             }
 
-            return new Attachment(
-                    originalFilename,
-                    contentType,
-                    size,
-                    filePath.toString()
-            );
+            log.debug("Saved file '{}' to '{}'", originalFilename, filePath);
+            return new Attachment(originalFilename, contentType, size, filePath.toString());
 
         } catch (IOException e) {
+            log.error("Error saving file: {}", file.getOriginalFilename(), e);
             throw new AttachmentSaveException("Error saving file: " + file.getOriginalFilename());
         }
     }
@@ -197,16 +202,21 @@ public class AttachmentServiceImpl implements AttachmentService {
         try {
             if (Files.exists(path)) {
                 Files.delete(path);
+                log.info("Physical file deleted: {}", pathStr);
             }
         } catch (IOException e) {
+            log.error("Error deleting file: {}", pathStr, e);
             throw new FileDeletionException("Error deleting file: " + pathStr);
         }
     }
 
     private String extractExtension(String filename) {
         if (filename != null && filename.contains(".")) {
-            return filename.substring(filename.lastIndexOf("."));
+            String extension = filename.substring(filename.lastIndexOf("."));
+            log.debug("Extracted extension '{}' from filename '{}'", extension, filename);
+            return extension;
         }
+        log.debug("No extension found for filename '{}'", filename);
         return "";
     }
 
@@ -214,16 +224,22 @@ public class AttachmentServiceImpl implements AttachmentService {
         LocalDate now = LocalDate.now();
         String year = String.valueOf(now.getYear());
         String month = now.getMonth().name().charAt(0) + now.getMonth().name().substring(1).toLowerCase();
-        return Path.of(BASE_FOLDER, year, month);
+        Path path = Path.of(BASE_FOLDER, year, month);
+        log.debug("Generated directory path: {}", path);
+        return path;
     }
 
     private Path generateUniqueFilePath(Path directoryPath, String extension) throws IOException {
         Path filePath;
         String uniqueName;
+        int attempt = 0;
         do {
             uniqueName = UUID.randomUUID() + extension;
             filePath = directoryPath.resolve(uniqueName);
+            attempt++;
         } while (Files.exists(filePath));
+
+        log.debug("Generated unique file path '{}' on attempt {}", filePath, attempt);
         return filePath;
     }
 
@@ -232,11 +248,13 @@ public class AttachmentServiceImpl implements AttachmentService {
         String filename = file.getOriginalFilename();
 
         if (contentType == null || !contentType.startsWith("image/")) {
+            log.warn("Invalid file type: {}", contentType);
             throw new InvalidImageFileException("Only image files are allowed.");
         }
 
         if (filename == null ||
                 !(filename.endsWith(".png") || filename.endsWith(".jpg") || filename.endsWith(".jpeg"))) {
+            log.warn("Unsupported file extension: {}", filename);
             throw new InvalidImageFileException("Allowed formats: .png, .jpg, .jpeg");
         }
     }
