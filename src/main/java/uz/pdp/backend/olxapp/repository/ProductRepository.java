@@ -14,14 +14,12 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpecificationExecutor<Product> {
-    Page<Product> findByCreatedBy(User createdBy, Pageable pageable);
-
-    Page<Product> findAllByIsApprovedTrueAndActiveTrue(Boolean isApproved, boolean active, Pageable pageable); // todo bu method qanday ishlaydi ??
+    //    Page<Product> findAllByIsApprovedTrueAndActiveTrue(Boolean isApproved, boolean active, Pageable pageable); // todo bu method qanday ishlaydi ??
 
     @Query("select p from product p where p.status=:status")
     Page<Product> findAllByStatus(Pageable pageable, @Param("status") Status status);
 
-    Optional<Product> findByIdAndIsApprovedTrueAndActiveTrue(Long id); // todo bu method qanday ishlaydi ??
+//    Optional<Product> findByIdAndIsApprovedTrueAndActiveTrue(Long id); // todo bu method qanday ishlaydi ??
 
 
     @Query("SELECT p FROM product p WHERE p.id = :id AND p.status IN :statuses")
@@ -30,6 +28,18 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
     /// todo Bu metod @Query сиз йозиладими йокми текириш керак
     Page<Product> findByCreatedByAndStatus(User user, Status status, Pageable pageable);
 
-    @Query("select p from product p where p.status= :status")
-    Page<Product> findAllByIsApproved(Pageable pageable, @Param("status") Status status);
+    @Query(value = "SELECT DISTINCT p FROM product p " +
+            "LEFT JOIN FETCH p.rejectionReasons " +
+            "LEFT JOIN FETCH p.productImages " +
+            "WHERE p.createdBy = :user AND p.status = :status",
+            countQuery = "SELECT count(p) FROM product p WHERE p.createdBy = :user AND p.status = :status")
+    Page<Product> findUserProductsByStatus(
+            @Param("user") User user,
+            @Param("status") Status status,
+            Pageable pageable
+    );
+
+
+    @Query("SELECT p FROM product p LEFT JOIN FETCH p.rejectionReasons WHERE p.id = :id")
+    Optional<Product> findByIdWithRejectionReasons(@Param("id") Long id);
 }

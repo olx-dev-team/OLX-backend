@@ -467,4 +467,77 @@ public class ProductServiceImpl implements ProductService {
                 all.isEmpty()
         );
     }
+
+
+    public ProductModerationStatusDTO getModerationStatus(Long productId, User currentUser) {
+        // 1. Находим продукт в базе. Используем запрос, который сразу подтянет причины, чтобы избежать N+1.
+        Product product = productRepository.findByIdWithRejectionReasons(productId) // Нам нужно создать этот метод в репозитории
+                .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + productId, HttpStatus.NOT_FOUND));
+
+        // 2. Проверяем права доступа. Это КРИТИЧЕСКИ ВАЖНО.
+        if (!Objects.equals(product.getCreatedBy().getId(), currentUser.getId())) {
+            throw new AccessDeniedException("You do not have permission to view the status of this product.");
+        }
+
+        return mapToModerationStatusDTO(product);
+    }
+
+
+    @Transactional(readOnly = true)
+    public PageDTO<ProductModerationListDTO> findMyRejectedProduct(User currentUser, Integer page, Integer size) {
+        Sort sort = Sort.by(LongIdAbstract.Fields.id);
+        PageRequest pageRequest = PageRequest.of(page, size, sort);
+
+        Page<Product> rejectedProductPages = productRepository
+                .findUserProductsByStatus(currentUser, Status.REJECTED, pageRequest);
+
+        Page<ProductModerationListDTO> map = rejectedProductPages.map(this::mapToRejectedProductListItemDTO);
+
+        return toPageDTO(map);
+
+
+    }
+
+    private ProductModerationListDTO mapToRejectedProductListItemDTO(Product product) {
+        return ProductModerationListDTO.builder()
+                .id(product.getId())
+                .title(product.getTitle())
+                .rejectionReasons(product.getRejectionReasons())
+                .mainImageUrl(getMainImageUrl(product))
+                .build();
+    }
+
+    // Вспомогательный метод для получения URL главной картинки. Тоже не меняется.
+    private String getMainImageUrl(Product product) {
+        if (product.getProductImages() == null || product.getProductImages().isEmpty()) {
+            return null; // или URL картинки-заглушки
+        }
+        ProductImage mainImage = product.getProductImages().get(0);
+        return "/api/attachments/" + mainImage.getId(); // Пример URL
+    }
+
+    // Универсальный конвертер из Page в твой PageDTO. Не меняется.
+    private <T> PageDTO<T> toPageDTO(Page<T> springPage) {
+        return new PageDTO<>(
+                springPage.getContent(),
+                springPage.getNumber(),
+                springPage.getSize(),
+                springPage.getTotalElements(),
+                springPage.getTotalPages(),
+                springPage.isLast(),
+                springPage.isFirst(),
+                springPage.getNumberOfElements(),
+                springPage.isEmpty()
+        );
+    }
+
+
+    private ProductModerationStatusDTO mapToModerationStatusDTO(Product product) {
+        return ProductModerationStatusDTO.builder()
+                .productId(product.getId())
+                .status(product.getStatus())
+                .rejectionReasons(product.getRejectionReasons())
+                .build();
+    }
+
 }

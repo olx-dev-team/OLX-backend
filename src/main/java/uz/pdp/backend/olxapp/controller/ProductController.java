@@ -1,11 +1,14 @@
 package uz.pdp.backend.olxapp.controller;
 
 import jakarta.validation.Valid;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import uz.pdp.backend.olxapp.entity.User;
 import uz.pdp.backend.olxapp.payload.*;
 import uz.pdp.backend.olxapp.service.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -108,17 +111,17 @@ public class ProductController {
      * Test successfully!
      *
      * @param productReqDTO - DTO for creating a new product {
-     *                         title: "String",
-     *                         description: "String",
-     *                         price: Double,
-     *                         categoryId: Long,
-     *                         imageDTOS: [
-     *                             {
-     *                                 file: File
-     *                             },
-     *                             ...
-     *                         ]
-     * }
+     *                      title: "String",
+     *                      description: "String",
+     *                      price: Double,
+     *                      categoryId: Long,
+     *                      imageDTOS: [
+     *                      {
+     *                      file: File
+     *                      },
+     *                      ...
+     *                      ]
+     *                      }
      * @return created product
      */
     @Operation(summary = "Create product", description = "Creates a new product with multipart form-data including optional images")
@@ -171,21 +174,48 @@ public class ProductController {
      * Test successfully!
      *
      * @param filterDTO - DTO for filtering products by title, category and price range {
-     *                    searchText: "String",
-     *                    categoryId: Long,
-     *                    minPrice: Double,
-     *                    maxPrice: Double
-     *                }
+     *                  searchText: "String",
+     *                  categoryId: Long,
+     *                  minPrice: Double,
+     *                  maxPrice: Double
+     *                  }
      * @return page of filtered products
      */
     @Operation(summary = "Search products", description = "Search and filter products by title, category and price range")
     @GetMapping("/open/v1/search")
-    public ResponseEntity<PageDTO<ProductDTO>> searchProducts(
+    public ResponseEntity<PageDTO<ProductDTO>> searchProducts
+    (
             @Parameter(description = "Product filtering options")
             ProductFilterDTO filterDTO,
             @RequestParam(defaultValue = "0") Integer page,
-            @RequestParam(defaultValue = "10") Integer size) {
+            @RequestParam(defaultValue = "10") Integer size
+    ) {
         return ResponseEntity.ok(productService.searchProducts(filterDTO, page, size));
     }
+
+
+    @GetMapping("/close/v1/product-moderation-status/{productId}")
+    public ResponseEntity<ProductModerationStatusDTO> getProductModerationStatus
+            (
+                    @PathVariable Long productId,
+                    @AuthenticationPrincipal User currentUser
+            ) {
+        ProductModerationStatusDTO moderationStatus = productService.getModerationStatus(productId, currentUser);
+
+        return ResponseEntity.ok(moderationStatus);
+    }
+
+
+    @GetMapping("/rejected")
+    public ResponseEntity<PageDTO<ProductModerationListDTO>> getRejectedProducts
+            (
+                    @AuthenticationPrincipal User currentUser
+                    , @RequestParam(defaultValue = "0") Integer page
+                    , @RequestParam(defaultValue = "10") Integer size
+            ) {
+        return ResponseEntity.ok(productService.findMyRejectedProduct(currentUser, page, size));
+    }
+
+
 }
 
