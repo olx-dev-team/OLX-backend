@@ -1,6 +1,7 @@
 package uz.pdp.backend.olxapp.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import uz.pdp.backend.olxapp.entity.Notification;
@@ -14,6 +15,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class NotificationServiceImpl implements NotificationService {
@@ -45,33 +47,48 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public Long countUnread(Long receiverId) {
-        return notificationRepository
-                .countByReceiverIdAndSeenFalse(receiverId);
+        Long count = notificationRepository.countByReceiverIdAndSeenFalse(receiverId);
+        log.info("Unread notifications for receiverId={}: {}", receiverId, count);
+        return count;
     }
 
     @Override
     public void markAsSeen(Long notificationId) {
+        log.info("Marking notification as seen: notificationId={}", notificationId);
 
         Notification notification = notificationRepository.findById(notificationId)
-                .orElseThrow(() -> new EntityNotFoundException("Notification not found with id:" + notificationId, HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> {
+                    log.warn("Notification not found with id={}", notificationId);
+                    return new EntityNotFoundException("Notification not found with id:" + notificationId, HttpStatus.NOT_FOUND);
+                });
 
         notification.setSeen(true);
         notification.setUpdatedAt(LocalDateTime.now());
         notificationRepository.save(notification);
+
+        log.debug("Notification marked as seen: notificationId={}", notificationId);
     }
 
     @Override
     public void sendNotificationByReceiver(Long receiverId) {
+        log.info("Sending email notifications to receiverId={}", receiverId);
 
         List<Notification> notifications = notificationRepository.findByReceiverId(receiverId);
 
         for (Notification notification : notifications) {
             User receiver = notification.getReceiver();
 
-            emailService.sendSimpleEmail(receiver.getEmail(),
-                    "Yangi xabar keldi sizga ",
-                    notification.getMessage());
-        }
-    }
+            try {
+                emailService.sendSimpleEmail(receiver.getEmail(),
+                        "Yangi xabar keldi sizga ",
+                        notification.getMessage());
 
+                log.debug("Email sent to {} for notificationId={}", receiver.getEmail(), notification.getId());
+            } catch (Exception e) {
+                log.error("Failed to send email to {}: {}", receiver.getEmail(), e.getMessage());
+            }
+        }
+
+        log.info("Finished sending {} notifications to receiverId={}", notifications.size(), receiverId);
+    }
 }

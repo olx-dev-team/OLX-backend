@@ -44,13 +44,16 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     @Transactional
     public CategoryDTO save(CategoryReqDTO categoryReqDTO) {
+        log.info("Saving new category with name: {}", categoryReqDTO.getName());
 
         Category parentCategory = null;
         if (categoryReqDTO.getParentId() != 0) {
             parentCategory = categoryRepository.findByIdOrThrow(categoryReqDTO.getParentId());
+            log.debug("Parent category found: ID = {}", categoryReqDTO.getParentId());
         }
 
         if (categoryRepository.existsByNameIgnoreCase(categoryReqDTO.getName())) {
+            log.warn("Attempt to create category with duplicate name: {}", categoryReqDTO.getName());
             throw new ConflictException("Category name already exists: " + categoryReqDTO.getName(), HttpStatus.CONFLICT);
         }
 
@@ -61,41 +64,42 @@ public class CategoryServiceImpl implements CategoryService {
                 Collections.emptyList()
         );
 
-        Category saveCategory = categoryRepository.save(category);
-        return categoryMapper.toDto(saveCategory);
-
+        Category savedCategory = categoryRepository.save(category);
+        log.info("Category saved successfully with ID: {}", savedCategory.getId());
+        return categoryMapper.toDto(savedCategory);
     }
-
 
     @Override
     @Transactional
     public CategoryDTO update(Long id, @Valid CategoryReqDTO categoryDTO) {
-
+        log.info("Updating category ID: {}", id);
         Category category = categoryRepository.findByIdOrThrow(id);
+        log.debug("Current category name: '{}', updating to '{}'", category.getName(), categoryDTO.getName());
 
         category.setName(categoryDTO.getName());
-
-        categoryRepository.save(category);
-        return categoryMapper.toDto(category);
-
+        Category updatedCategory = categoryRepository.save(category);
+        log.info("Category updated successfully with ID: {}", updatedCategory.getId());
+        return categoryMapper.toDto(updatedCategory);
     }
 
     @Override
     @Transactional
     public CategoryDTO delete(Long id) {
-
+        log.info("Attempting to delete category ID: {}", id);
         Category category = categoryRepository.findByIdOrThrow(id);
 
         if (!category.getChildren().isEmpty()) {
+            log.warn("Cannot delete category ID {} because it has child categories", id);
             throw new EntityNotFoundException("Can't delete category with child categories!", HttpStatus.CONFLICT);
         }
 
         if (!category.getProducts().isEmpty()) {
+            log.warn("Cannot delete category ID {} because it contains products", id);
             throw new EntityNotFoundException("Can't delete category with products!", HttpStatus.CONFLICT);
         }
 
         categoryRepository.delete(category);
+        log.info("Category deleted successfully: ID = {}", id);
         return categoryMapper.toDto(category);
-
     }
 }

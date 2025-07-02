@@ -1,9 +1,9 @@
 package uz.pdp.backend.olxapp.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
@@ -30,6 +30,7 @@ import uz.pdp.backend.olxapp.specifation.ProductSpecification;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService {
@@ -42,11 +43,19 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public PageDTO<ProductDTO> read(Integer page, Integer size) {
+        log.info("Fetching products - page: {}, size: {}", page, size);
+
         Sort sort = Sort.by(LongIdAbstract.Fields.id);
         PageRequest pageRequest = PageRequest.of(page, size, sort);
 
-        //Status ACTIVE bo'lganlarni olib kelamiz
         Page<Product> productPage = productRepository.findAllByStatus(pageRequest, Status.ACTIVE);
+
+        if (productPage.isEmpty()) {
+            log.warn("No active products found on page {} with size {}", page, size);
+        } else {
+            log.info("Found {} products on page {} out of {} total pages",
+                    productPage.getNumberOfElements(), productPage.getNumber(), productPage.getTotalPages());
+        }
 
         return new PageDTO<>(
                 productPage.getContent().stream().map(productMapper::toDto).toList(),
@@ -63,22 +72,36 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ProductDTO read(Long id) {
+        log.info("Reading product with ID: {}", id);
 
-        //Bitta productni olib kelamiz uni ham statusi ACTIVE bo'lishi kerak
         Product product = productRepository.findByIdAndStatus(id, List.of(Status.ACTIVE))
-                .orElseThrow(() -> new EntityNotFoundException("Your product may be is not active or not found", HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> {
+                    log.warn("Product with ID {} not found or not active", id);
+                    return new EntityNotFoundException("Your product may be is not active or not found", HttpStatus.NOT_FOUND);
+                });
 
+        log.info("Successfully fetched product with ID: {}", id);
         return productMapper.toDto(product);
     }
 
     @Override
     public ProductDTO increaseViewCount(Long id) {
+        log.info("Attempting to increase view count for product with ID: {}", id);
+
         Product product = productRepository
                 .findByIdAndStatus(id, List.of(Status.ACTIVE))
-                .orElseThrow(() -> new EntityNotFoundException("Your product may be is not active or not found", HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> {
+                    log.warn("Product with ID {} not found or not active", id);
+                    return new EntityNotFoundException("Your product may be is not active or not found", HttpStatus.NOT_FOUND);
+                });
 
-        product.setViewCounter(product.getViewCounter() + 1);
-        return productMapper.toDto(productRepository.save(product));
+        int oldCount = product.getViewCounter();
+        product.setViewCounter(oldCount + 1);
+        Product savedProduct = productRepository.save(product);
+
+        log.info("View count for product ID {} increased from {} to {}", id, oldCount, savedProduct.getViewCounter());
+
+        return productMapper.toDto(savedProduct);
     }
 
 // ProductServiceImpl.java
@@ -87,62 +110,52 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public ProductDTO save(ProductReqDTO productReqDTO) {
-
+        log.info("Attempting to save new product: {}", productReqDTO.getTitle());
 
         Category category = categoryRepository.findByIdOrThrow(productReqDTO.getCategoryId());
-
-        //noinspection ExtractMethodRecommender
         if (!category.getChildren().isEmpty()) {
+            log.warn("Attempted to assign product to non-leaf category: {}", category.getName());
             throw new IllegalArgumentException("Category has child categories");
         }
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (!(authentication.getPrincipal() instanceof User user)) {
+            log.error("Unauthenticated user attempted to save product");
             throw new AccessDeniedException("User is not authenticated");
         }
 
-        // 1. Product entitini yaratish
         Product product = new Product();
         product.setTitle(productReqDTO.getTitle());
         product.setDescription(productReqDTO.getDescription());
         product.setPrice(productReqDTO.getPrice());
-        product.setCategory(category); // yoki categoryService.getById(id)
-///        product.setActive(productReqDTO.isActive()); buni orniga endi biz Enum bilan ishlayapmiz
+        product.setCategory(category);
         product.setStatus(Status.PENDING_REVIEW);
         product.setCreatedBy(user);
 
-        Product savedProduct = productRepository.save(product);// asosiy product saqlanadi
+        Product savedProduct = productRepository.save(product);
+        log.debug("Saved product with ID: {}", savedProduct.getId());
 
-        // 2. Rasm fayllarini Attachment qilib saqlash
+        // Handle images
         List<ProductNewImageDTO> imageDTOS = productReqDTO.getImageDTOS();
-
         if (imageDTOS.size() > 8) {
+            log.warn("User {} tried to upload more than 8 images", user.getId());
             throw new IllegalActionException("Maximum 8 images are allowed.", HttpStatus.BAD_REQUEST);
         }
 
-        int count = (int) imageDTOS.stream()
-                .filter(ProductNewImageDTO::isMain)
-                .count();
-
+        int count = (int) imageDTOS.stream().filter(ProductNewImageDTO::isMain).count();
         if (count != 1) {
+            log.warn("Incorrect number of main images ({}) provided by user {}", count, user.getId());
             throw new IllegalActionException("One main image should be selected", HttpStatus.BAD_REQUEST);
         }
-
 
         for (ProductNewImageDTO imageDTO : imageDTOS) {
             MultipartFile file = imageDTO.getFile();
             boolean isMain = imageDTO.isMain();
+            if (file == null || file.isEmpty()) continue;
 
-            // ❗ attachment null bo'lishi mumkin, tekshirib olamiz
-            if (file == null || file.isEmpty()) {
-                continue; // rasm yuborilmagan bo‘lsa, tashlab ketamiz
-            }
-
-            // Attachment saqlaymiz
-            AttachmentDTO attachmentDTO = attachmentService.upload(file); // bu DTO ichida ID bo'lishi kerak
+            AttachmentDTO attachmentDTO = attachmentService.upload(file);
             Attachment attachment = attachmentRepository.findByIdOrElseTrow(attachmentDTO.getId());
 
-            // ProductImage ni yaratamiz
             ProductImage image = new ProductImage();
             image.setProduct(product);
             image.setAttachment(attachment);
@@ -151,9 +164,8 @@ public class ProductServiceImpl implements ProductService {
             savedProduct.getProductImages().add(image);
         }
 
-
-        // 3. ProductDTO qaytarish
-        return productMapper.toDto(product);
+        log.info("Product created successfully with ID: {}", savedProduct.getId());
+        return productMapper.toDto(savedProduct);
     }
 
     ///  tekshirilgi
@@ -161,17 +173,25 @@ public class ProductServiceImpl implements ProductService {
     @Transactional(rollbackFor = Exception.class)
     public ProductDTO updateProduct(Long productId, ProductUpdateDTO productUpdateDTO) {
 
+        log.info("Starting update for product ID: {}", productId);
+
         // 1. Mahsulotni topish va tekshirish
         Product product = productRepository
                 .findByIdAndStatus(productId, List.of(Status.ACTIVE, Status.REJECTED, Status.PENDING_REVIEW))
-                .orElseThrow(() -> new EntityNotFoundException("Product not found or not in an editable state", HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> {
+                    log.warn("Product ID {} not found or not editable", productId);
+                    return new EntityNotFoundException("Product not found or not in an editable state", HttpStatus.NOT_FOUND);
+                });
 
         // Foydalanuvchi huquqini tekshirish (rasmlarni qayta ishlashdan oldin)
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (!(authentication.getPrincipal() instanceof User user)) {
+            log.warn("Unauthenticated user tried to update product ID {}", productId);
             throw new AccessDeniedException("User is not authenticated");
         }
+
         if (!product.getCreatedBy().getId().equals(user.getId()) && !user.getRole().equals(Role.ADMIN)) {
+            log.warn("User {} attempted unauthorized update of product ID {}", user.getId(), productId);
             throw new AccessDeniedException("You are not the owner of this product");
         }
 
@@ -179,8 +199,11 @@ public class ProductServiceImpl implements ProductService {
         List<ExistedImageDTO> existedImages = Optional.ofNullable(productUpdateDTO.getExistedImages()).orElse(Collections.emptyList());
         List<ProductNewImageDTO> newImages = Optional.ofNullable(productUpdateDTO.getProductNewImages()).orElse(Collections.emptyList());
 
+        log.debug("Existed images: {}, New images: {}", existedImages.size(), newImages.size());
+
         // 3. Rasm soni va asosiy rasm validatsiyasi
         if (existedImages.size() + newImages.size() > 8) {
+            log.warn("Product update failed: too many images ({} total)", existedImages.size() + newImages.size());
             throw new IllegalActionException("Maximum 8 images are allowed.", HttpStatus.BAD_REQUEST);
         }
 
@@ -189,9 +212,9 @@ public class ProductServiceImpl implements ProductService {
                 newImages.stream().filter(ProductNewImageDTO::isMain).count();
 
         if (mainImageCount != 1) {
+            log.warn("Product update failed: {} main images provided", mainImageCount);
             throw new IllegalActionException("Exactly one main image must be selected.", HttpStatus.BAD_REQUEST);
         }
-
 
         // 4. Rasmlarni qayta ishlash (TO'G'RI KETMA-KETLIK)
 
@@ -237,53 +260,70 @@ public class ProductServiceImpl implements ProductService {
         // 6. O'zgarishlarni saqlash
         Product updatedProduct = productRepository.save(product);
 
+        log.info("Successfully updated product ID: {}", productId);
+
         return productMapper.toDto(updatedProduct);
     }
 
     @Override
     @Transactional
     public void updateStatus(Long id) {
+        log.info("Attempting to update status for product ID: {}", id);
 
         Product product = productRepository
                 .findByIdAndStatus(id, List.of(Status.ACTIVE))
-                .orElseThrow(() -> new EntityNotFoundException("Product not found", HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> {
+                    log.warn("Product with ID {} not found or not active", id);
+                    return new EntityNotFoundException("Product not found", HttpStatus.NOT_FOUND);
+                });
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication.getPrincipal() instanceof User user) {
             if (!user.getId().equals(product.getCreatedBy().getId())) {
+                log.warn("User ID {} attempted to update status of product ID {} not owned by them", user.getId(), id);
                 throw new AccessDeniedException("You are not the owner of this product");
             }
         } else {
+            log.warn("Unauthenticated access attempt to update status of product ID {}", id);
             throw new AccessDeniedException("User is not authenticated");
         }
 
-
         product.setStatus(Status.PENDING_REVIEW);
-
         productRepository.save(product);
+
+        log.info("Successfully updated product ID {} status to PENDING_REVIEW", id);
     }
 
     @Override
     @Transactional
     public void deleteProduct(Long id) {
+        log.info("Attempting to delete product with ID: {}", id);
 
         Product product = productRepository
                 .findByIdAndStatus(id, List.of(Status.ACTIVE))
-                .orElseThrow(() -> new EntityNotFoundException("Product not found", HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> {
+                    log.warn("Product with ID {} not found or not active", id);
+                    return new EntityNotFoundException("Product not found", HttpStatus.NOT_FOUND);
+                });
+
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (!(authentication.getPrincipal() instanceof User user)) {
+            log.warn("Unauthenticated attempt to delete product ID {}", id);
             throw new AccessDeniedException("User is not authenticated");
         }
+
         if (!user.getId().equals(product.getCreatedBy().getId())) {
+            log.warn("User ID {} attempted to delete product ID {} not owned by them", user.getId(), id);
             throw new AccessDeniedException("You are not the owner of this product");
         }
 
         if (product.getStatus().equals(Status.DRAFT)) {
+            log.warn("Attempt to delete product ID {} in draft state", id);
             throw new IllegalActionException("This product is in draft state and cannot be deleted", HttpStatus.BAD_REQUEST);
         }
 
         productRepository.delete(product);
-
+        log.info("Product with ID {} deleted successfully by user ID {}", id, user.getId());
     }
 
 
@@ -403,7 +443,9 @@ public class ProductServiceImpl implements ProductService {
     }
 
     /// tekshirildi ishlayapti
+    @Override
     public PageDTO<ProductDTO> searchProducts(ProductFilterDTO filterDTO, Integer page, Integer size) {
+        log.info("Searching products with filters: {}, page: {}, size: {}", filterDTO, page, size);
 
         Specification<Product> specification = ProductSpecification.filterBy(filterDTO);
 
@@ -411,7 +453,10 @@ public class ProductServiceImpl implements ProductService {
         PageRequest pageable = PageRequest.of(page, size, sort);
         Page<Product> all = productRepository.findAll(specification, pageable);
 
-        return new PageDTO<>(all.getContent().stream().map(productMapper::toDto).toList(),
+        log.info("Found {} products matching the filters", all.getTotalElements());
+
+        return new PageDTO<>(
+                all.getContent().stream().map(productMapper::toDto).toList(),
                 all.getNumber(),
                 all.getSize(),
                 all.getTotalElements(),
@@ -421,8 +466,5 @@ public class ProductServiceImpl implements ProductService {
                 all.getNumberOfElements(),
                 all.isEmpty()
         );
-
     }
-
-
 }
