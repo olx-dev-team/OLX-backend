@@ -32,11 +32,11 @@ import io.swagger.v3.oas.annotations.servers.Server;
         ),
         servers = {
                 @Server(
-                        url = "http://localhost:9090",
+                        url = "http://localhost:8080",
                         description = "Production-Server"
                 ),
                 @Server(
-                        url = "http://192.168.1.181:9090",
+                        url = "http://10.10.4.147:8080",
                         description = "Test-Server"
                 )
 
