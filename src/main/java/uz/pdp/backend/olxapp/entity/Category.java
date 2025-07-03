@@ -29,7 +29,7 @@ public class Category extends LongIdAbstract {
 
     // Self-referencing for subcategories
     @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     private Category parent;
 
     @ToString.Exclude

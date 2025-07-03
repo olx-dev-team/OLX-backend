@@ -144,7 +144,7 @@ public class ChatServiceImpl implements ChatService {
 
         if (!chat.getUserOne().getId().equals(senderId) && !chat.getUserTwo().getId().equals(senderId)) {
             log.warn("User {} is not a participant of chat {}", senderId, chatId);
-            throw new SecurityException("User is not a participant of chat");
+            throw new IllegalActionException("User is not a participant of chat", HttpStatus.FORBIDDEN);
         }
 
         Message newMessage = new Message();
@@ -175,7 +175,7 @@ public class ChatServiceImpl implements ChatService {
                 .orElseThrow(() -> new EntityNotFoundException("Chat not found with id: " + chatId, HttpStatus.NOT_FOUND));
 
         if (!chat.getUserOne().getId().equals(userId) && !chat.getUserTwo().getId().equals(userId)) {
-            throw new SecurityException("User " + userId + " is not a participant of chat " + chatId);
+            throw new IllegalActionException("User " + userId + " is not a participant of chat " + chatId, HttpStatus.FORBIDDEN);
         }
 
         // Получаем СТРАНИЦУ сообщений из репозитория

@@ -1,5 +1,6 @@
 package uz.pdp.backend.olxapp.payload;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
@@ -23,8 +24,10 @@ import java.util.List;
 @NoArgsConstructor
 public class ProductDTO implements Serializable {
 
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
 
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updatedAt;
 
     private boolean active;
@@ -46,7 +49,7 @@ public class ProductDTO implements Serializable {
 
     private Long categoryId;
 
-    private List<FavoritesDTO> favorites = new ArrayList<>();
+//    private List<FavoritesDTO> favorites = new ArrayList<>();
 
     private List<ProductImageDTO> productImages = new ArrayList<>();
 

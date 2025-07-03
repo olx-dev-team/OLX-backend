@@ -1,5 +1,6 @@
 package uz.pdp.backend.olxapp.payload;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,8 +18,10 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class FavoritesDTO implements Serializable {
 
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
 
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updatedAt;
 
     private boolean active;

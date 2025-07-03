@@ -77,7 +77,7 @@ public class ModeratorServiceImpl implements ModeratorService {
 
     @Override
     @Transactional
-    public ModeratedProductDTO rejectProduct(Long productId, RejectionDTO rejectionDTO) {
+    public ModeratedProductDTO  rejectProduct(Long productId, RejectionDTO rejectionDTO) {
         log.info("Rejecting product ID {} with reasons: {}", productId, rejectionDTO.getReasons());
 
         Product product = productRepository.findById(productId)

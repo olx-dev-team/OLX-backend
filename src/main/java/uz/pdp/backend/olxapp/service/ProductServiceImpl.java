@@ -117,7 +117,7 @@ public class ProductServiceImpl implements ProductService {
         Category category = categoryRepository.findByIdOrThrow(productReqDTO.getCategoryId());
         if (!category.getChildren().isEmpty()) {
             log.warn("Attempted to assign product to non-leaf category: {}", category.getName());
-            throw new IllegalArgumentException("Category has child categories");
+            throw new IllegalActionException("Category has child categories", HttpStatus.BAD_REQUEST);
         }
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -139,6 +139,12 @@ public class ProductServiceImpl implements ProductService {
 
         // Handle images
         List<ProductNewImageDTO> imageDTOS = productReqDTO.getImageDTOS();
+
+        if (Objects.isNull(imageDTOS)) {
+            log.warn("No images provided for product creation"); // Logga yozish
+            throw new IllegalActionException("Please provide at least one image", HttpStatus.BAD_REQUEST);
+        }
+
         if (imageDTOS.size() > 8) {
             log.warn("User {} tried to upload more than 8 images", user.getId());
             throw new IllegalActionException("Maximum 8 images are allowed.", HttpStatus.BAD_REQUEST);
@@ -189,7 +195,7 @@ public class ProductServiceImpl implements ProductService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (!(authentication.getPrincipal() instanceof User user)) {
             log.warn("Unauthenticated user tried to update product ID {}", productId);
-            throw new AccessDeniedException("User is not authenticated");
+            throw new IllegalActionException("User is not authenticated",HttpStatus.FORBIDDEN);
         }
 
         if (!product.getCreatedBy().getId().equals(user.getId()) && !user.getRole().equals(Role.ADMIN)) {
@@ -273,7 +279,7 @@ public class ProductServiceImpl implements ProductService {
         log.info("Attempting to update status for product ID: {}", id);
 
         Product product = productRepository
-                .findByIdAndStatus(id, List.of(Status.ACTIVE))
+                .findByIdAndStatus(id, List.of(Status.ACTIVE,Status.DRAFT, Status.REJECTED, Status.PENDING_REVIEW, Status.SOLD, Status.INACTIVE))
                 .orElseThrow(() -> {
                     log.warn("Product with ID {} not found or not active", id);
                     return new EntityNotFoundException("Product not found", HttpStatus.NOT_FOUND);
@@ -290,7 +296,7 @@ public class ProductServiceImpl implements ProductService {
             throw new AccessDeniedException("User is not authenticated");
         }
 
-        product.setStatus(Status.PENDING_REVIEW);
+        product.setStatus(Status.INACTIVE);
         productRepository.save(product);
 
         log.info("Successfully updated product ID {} status to PENDING_REVIEW", id);

@@ -35,13 +35,13 @@ public class UserController {
             description = "Returns paginated list of users with inactive status. Access limited to admins.")
     @PreAuthorize("hasAnyRole('ADMIN')")
     @GetMapping("/close/v1/users/inactive")
-    public PageDTO<?> getAllInactiveUsers(@RequestParam Integer page,
-                                          @RequestParam Integer size) {
+    public PageDTO<?> getAllInactiveUsers(@RequestParam(defaultValue = "0") Integer page,
+                                          @RequestParam(defaultValue = "10") Integer size) {
         return userService.getAllInactive(page, size);
     }
 
     @Operation(summary = "Change user role", description = "Changes the role of a user by ID. Public endpoint.")
-    @GetMapping("/open/v1/users/changed/{id}")
+    @PutMapping("/close/v1/users/changed/{id}")
     public void changeUserRole(@PathVariable Long id, @RequestBody ChangeUserRole changeUserRole) {
         userService.changeUserRole(id, changeUserRole);
     }
@@ -55,7 +55,7 @@ public class UserController {
     }
 
     @Operation(summary = "Update user profile", description = "Allows a user to update their profile. Returns new token if username is changed.")
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("hasAnyRole('USER','ADMIN','MODERATOR')")
     @PutMapping("/close/v1/users/{id}")
     public ResponseEntity<?> updateUser(@PathVariable Long id, @Valid @RequestBody UpdateUser updateUser) {
         UserDTO updatedUser = userService.updateUser(updateUser, id);

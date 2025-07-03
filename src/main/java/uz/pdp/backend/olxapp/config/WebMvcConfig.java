@@ -52,10 +52,10 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**") // barcha endpointlarga
-                .allowedOrigins("http://192.168.1.213:4200") // frontend IP + port
+                .allowedOrigins("*") // frontend IP + port
                 .allowedMethods("*")
                 .allowedHeaders("*")
-                .allowCredentials(true);
+                .allowCredentials(false);
     }
 
 }

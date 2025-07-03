@@ -117,7 +117,7 @@ public class ChatController {
     )
     @PostMapping("/{chatId}/messages")
     public ResponseEntity<MessageDTO> sendMessage(@PathVariable Long chatId,
-                                                  @Valid @RequestBody CreateMessageDTO createMessageDTO,
+                                                  @Valid @org.springframework.web.bind.annotation.RequestBody CreateMessageDTO createMessageDTO,
                                                   @AuthenticationPrincipal User currentUser) {
         MessageDTO sentMessage = chatService.sendMessage(chatId, currentUser.getId(), createMessageDTO);
         return new ResponseEntity<>(sentMessage, HttpStatus.CREATED);
