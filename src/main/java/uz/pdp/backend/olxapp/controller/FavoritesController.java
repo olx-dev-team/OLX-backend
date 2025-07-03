@@ -1,5 +1,6 @@
 package uz.pdp.backend.olxapp.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -97,7 +98,7 @@ public class FavoritesController {
             }
     )
     @PostMapping
-    public ResponseEntity<?> addFavorite(@RequestBody FavoriteReqDTO favoriteReqDTO) {
+    public ResponseEntity<?> addFavorite(@Valid @org.springframework.web.bind.annotation.RequestBody FavoriteReqDTO favoriteReqDTO) {
         favoritesService.addFavorite(favoriteReqDTO);
         return ResponseEntity.accepted().build();
     }

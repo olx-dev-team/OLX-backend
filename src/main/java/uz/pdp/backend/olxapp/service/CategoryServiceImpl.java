@@ -77,6 +77,14 @@ public class CategoryServiceImpl implements CategoryService {
         log.debug("Current category name: '{}', updating to '{}'", category.getName(), categoryDTO.getName());
 
         category.setName(categoryDTO.getName());
+        if (categoryDTO.getParentId() != null ) {
+            Category newParentCategory = categoryRepository.findByIdOrThrow(categoryDTO.getParentId());
+            log.debug("Changing parent category from '{}' to '{}'", category.getParent(), newParentCategory);
+            category.setParent(newParentCategory);
+        } else {
+            log.debug("No changes in the parent category.");
+            category.setParent(null); // Resetting the parent category
+        }
         Category updatedCategory = categoryRepository.save(category);
         log.info("Category updated successfully with ID: {}", updatedCategory.getId());
         return categoryMapper.toDto(updatedCategory);

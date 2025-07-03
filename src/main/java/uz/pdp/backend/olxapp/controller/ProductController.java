@@ -54,6 +54,7 @@ public class ProductController {
      * @return page of products with userId == authUser.getId() and isActive == true
      */
     @Operation(summary = "Get my active products", description = "Returns all approved and active products of the authenticated user")
+    @PreAuthorize(value = "hasAnyRole('USER','ADMIN','MODERATOR')")
     @GetMapping("/close/v1/my-products")
     public PageDTO<ProductDTO> getUserProductsIsApprovedTrue(
             @RequestParam(defaultValue = "0") Integer page,
@@ -69,6 +70,7 @@ public class ProductController {
      * @return page of products with status == WAITING
      */
     @Operation(summary = "Get waiting products", description = "Returns products with status WAITING")
+    @PreAuthorize(value = "hasAnyRole('USER','ADMIN','MODERATOR')")
     @GetMapping("/close/v1/products/waiting")
     public PageDTO<ProductDTO> getWaitingProducts(
             @RequestParam(defaultValue = "0") Integer page,
@@ -85,6 +87,7 @@ public class ProductController {
      * @return page of products with userId == authUser.getId() and isActive == false
      */
     @Operation(summary = "Get inactive products", description = "Returns inactive products of authenticated user")
+    @PreAuthorize(value = "hasAnyRole('USER','ADMIN','MODERATOR')")
     @GetMapping("/close/v1/products/inactive")
     public PageDTO<ProductDTO> getInactiveProducts(
             @RequestParam(defaultValue = "0") Integer page,
@@ -100,7 +103,8 @@ public class ProductController {
      * @return page of products with userId == authUser.getId() and isActive == false and status == REJECTED
      */
     @Operation(summary = "Get rejected products", description = "Returns rejected products of authenticated user")
-    @GetMapping("/close/v1/products/rejected")
+    @PreAuthorize(value = "hasAnyRole('USER','ADMIN','MODERATOR')")
+    @GetMapping("/close/v1/product/rejected")
     public PageDTO<ProductDTO> getRejectedProducts(
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "10") Integer size) {
@@ -125,7 +129,7 @@ public class ProductController {
      * @return created product
      */
     @Operation(summary = "Create product", description = "Creates a new product with multipart form-data including optional images")
-    @PreAuthorize(value = "hasAnyRole('USER','ADMIN')")
+    @PreAuthorize(value = "hasAnyRole('USER','ADMIN','MODERATOR')")
     @PostMapping(value = "/close/v1/products", consumes = {"multipart/form-data"})
     public ResponseEntity<ProductDTO> createProduct(
             @Valid @ModelAttribute ProductReqDTO productReqDTO) {
@@ -134,7 +138,7 @@ public class ProductController {
     }
 
     @Operation(summary = "Update product", description = "Updates an existing product with new data and optional new image files")
-    @PreAuthorize(value = "hasAnyRole('ADMIN','USER')")
+    @PreAuthorize(value = "hasAnyRole('USER','ADMIN','MODERATOR')")
     @PutMapping(value = "/close/v1/products/{id}", consumes = {"multipart/form-data"})
     public ResponseEntity<ProductDTO> updateProduct(
             @PathVariable Long id,
@@ -148,8 +152,8 @@ public class ProductController {
      *
      * @param id - product id to change the status
      */
-    @Operation(summary = "Change product active status", description = "Toggles the active status of a product (e.g. deactivate listing)")
-    @PreAuthorize(value = "hasRole('USER')")
+    @Operation(summary = "Change product active status with status INACTIVE", description = "Toggles the active status of a product (e.g. deactivate listing)")
+    @PreAuthorize(value = "hasAnyRole('USER','ADMIN','MODERATOR')")
     @PatchMapping("/close/v1/products/{id}/status")
     public ResponseEntity<Void> updateProductStatus(
             @PathVariable Long id) {
@@ -163,11 +167,11 @@ public class ProductController {
      * @param id - product id to delete it from database
      */
     @Operation(summary = "Delete product", description = "Deletes the product with the given ID")
-    @PreAuthorize(value = "hasRole('USER')")
+    @PreAuthorize(value = "hasAnyRole('USER','ADMIN','MODERATOR')")
     @DeleteMapping("/close/v1/products/{id}")
-    public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
+    public ResponseEntity<?> deleteProduct(@PathVariable Long id) {
         productService.deleteProduct(id);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok("product deleted");
     }
 
     /**
@@ -194,6 +198,8 @@ public class ProductController {
     }
 
 
+    @Operation(summary = "Get product moderation status", description = "Retrieve the moderation status of a specific product")
+    @PreAuthorize("hasAnyRole('ADMIN','USER','MODERATOR')")
     @GetMapping("/close/v1/product-moderation-status/{productId}")
     public ResponseEntity<ProductModerationStatusDTO> getProductModerationStatus
             (
@@ -206,7 +212,9 @@ public class ProductController {
     }
 
 
-    @GetMapping("/rejected")
+    @Operation(summary = "Get rejected products", description = "Retrieve a list of rejected products associated with the current user")
+    @PreAuthorize("hasAnyRole('ADMIN','USER','MODERATOR')")
+    @GetMapping("/close/v1/products/rejected")
     public ResponseEntity<PageDTO<ProductModerationListDTO>> getRejectedProducts
             (
                     @AuthenticationPrincipal User currentUser
