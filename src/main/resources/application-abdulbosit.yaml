@@ -44,3 +44,6 @@ logging:
     org.hibernate.orm.jdbc.bind: TRACE
     org.hibernate.type.descriptor.sql: TRACE
     com.example.your.app: DEBUG
+recaptcha:
+  site-key: YOUR_SITE_KEY
+  secret-key: YOUR_SECRET_KEY

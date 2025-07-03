@@ -1,7 +1,6 @@
 package uz.pdp.backend.olxapp.controller;
 
 import jakarta.validation.Valid;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,6 +9,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import uz.pdp.backend.olxapp.entity.User;
 import uz.pdp.backend.olxapp.payload.*;
+import uz.pdp.backend.olxapp.service.CaptchaService;
+import uz.pdp.backend.olxapp.service.CaptchaServiceImpl;
 import uz.pdp.backend.olxapp.service.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -22,6 +23,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 public class ProductController {
 
     private final ProductService productService;
+    private final CaptchaService captchaService;
 
     @Operation(summary = "Get all products",
             description = "Returns a page of all approved and active products")
@@ -187,13 +189,17 @@ public class ProductController {
      */
     @Operation(summary = "Search products", description = "Search and filter products by title, category and price range")
     @GetMapping("/open/v1/search")
-    public ResponseEntity<PageDTO<ProductDTO>> searchProducts
+    public ResponseEntity<?> searchProducts
     (
             @Parameter(description = "Product filtering options")
             ProductFilterDTO filterDTO,
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "10") Integer size
     ) {
+        if (!captchaService.verify(filterDTO.getCaptchaToken())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Invalid reCAPTCHA verification");
+        }
         return ResponseEntity.ok(productService.searchProducts(filterDTO, page, size));
     }
 
