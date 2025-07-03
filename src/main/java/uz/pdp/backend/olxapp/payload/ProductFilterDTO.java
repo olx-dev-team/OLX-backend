@@ -20,5 +20,7 @@ public class ProductFilterDTO {
     private Optional<BigDecimal> minPrice = Optional.empty();
     private Optional<BigDecimal> maxPrice = Optional.empty();
 
+    private String captchaToken;
+
 
 }
