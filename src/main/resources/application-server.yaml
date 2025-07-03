@@ -1,14 +1,17 @@
+server:
+  port: 9090
+
 spring:
   datasource:
     driver-class-name: org.postgresql.Driver
     url: jdbc:postgresql://localhost:5432/olx_db
-    username: postgres
-    password: 1234
+    username: abdulbosit_admin
+    password: abdulbosit_developer_2025
 
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: false
+    show-sql: false  # Pastda logging orqali chiroyli chiqariladi
     properties:
       hibernate:
         format_sql: true
@@ -25,16 +28,18 @@ spring:
           starttls:
             enable: true
 
-server:
-  port: 8080
-
-olx:
-  app:
-    base-folder: /home/abdulbosit/IdeaProjects/OLX-backend/src/main/resources/olx
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 15MB
 
 springdoc:
   swagger-ui:
     path: /swagger-ui.html
+
+olx:
+  app:
+    base-folder: /root/abdulbosit/OLX-backend/olx-doc
 
 logging:
   level:
@@ -43,7 +48,11 @@ logging:
     org.hibernate.SQL: DEBUG
     org.hibernate.orm.jdbc.bind: TRACE
     org.hibernate.type.descriptor.sql: TRACE
-    com.example.your.app: DEBUG
-recaptcha:
-  site-key: YOUR_SITE_KEY
-  secret-key: YOUR_SECRET_KEY
+    uz.pdp.backend.olxapp: DEBUG
+
+  file:
+    name: /root/abdulbosit/OLX-backend/olx-log/  # ? Fayl serverda shu yerga yoziladi (agar yo?q bo?lsa o?zi yaratiladi)
+
+  pattern:
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] [requestId=%X{requestId}] %-5level %logger{36} - %msg%n"
+    console: "%d{HH:mm:ss.SSS} [requestId=%X{requestId}] %-5level [%thread] %logger{36} - %msg%n"

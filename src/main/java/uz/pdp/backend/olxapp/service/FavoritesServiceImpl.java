@@ -49,8 +49,13 @@ public class FavoritesServiceImpl implements FavoritesService {
 
         Page<Favorites> favoritesPage = favoritesRepository.findByUser(user, pageRequest);
 
+        List<FavoritesDTO> favoritesDTOS = favoritesPage.getContent()
+                .stream()
+                .filter(product -> product.getProduct().getStatus() == Status.ACTIVE)
+                .map(favoritesMapper::toDto).toList();
+
         return new PageDTO<>(
-                favoritesPage.getContent().stream().map(favoritesMapper::toDto).toList(),
+                favoritesDTOS,
                 favoritesPage.getNumber(),
                 favoritesPage.getSize(),
                 favoritesPage.getTotalElements(),

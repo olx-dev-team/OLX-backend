@@ -1,5 +1,6 @@
 package uz.pdp.backend.olxapp.payload;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -19,8 +20,10 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class NotificationDTO implements Serializable {
 
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
 
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updatedAt;
 
     private boolean active;
