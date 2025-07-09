@@ -1,9 +1,9 @@
 spring:
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/olx_db
-    username: postgres
-    password: 1234
+    url: jdbc:postgresql://localhost:5432/<your database in postgres>
+    username: <your database username>
+    password: <your database password>
 
   jpa:
     hibernate:
@@ -16,8 +16,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: abdulbositAbdurahimov70@gmail.com
-    password: 'cphf yxno yydk sufr'
+    username: <your email google>
+    password: <your password google>
     properties:
       mail:
         smtp:
@@ -30,7 +30,7 @@ server:
 
 olx:
   app:
-    base-folder: /home/abdulbosit/IdeaProjects/OLX-backend/src/main/resources/olx
+    base-folder: <your package in local pc>
 
 springdoc:
   swagger-ui:
