@@ -30,7 +30,7 @@ public class ProductSpecification {
                 predicates.add(cb.or(titleLike, descriptionLike));
             });
 
-            filter.getCategoryId().ifPresent(categoryId -> predicates.add(cb.equal(root.join("category").get("id"), categoryId)));
+            filter.getCategoryName().ifPresent(categoryId -> predicates.add(cb.equal(root.join("category").get("name"), categoryId)));
 
             filter.getMinPrice().ifPresent(minPrice -> predicates.add(cb.greaterThanOrEqualTo(root.get("price"), minPrice)));
 

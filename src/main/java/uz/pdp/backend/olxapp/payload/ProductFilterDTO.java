@@ -14,7 +14,7 @@ public class ProductFilterDTO {
     private Optional<String> searchText = Optional.empty();
 
     // Для фильтрации по категории
-    private Optional<Long> categoryId = Optional.empty();
+    private Optional<String> categoryName = Optional.empty();
 
     // Для фильтрации по цене "от" и "до"
     private Optional<BigDecimal> minPrice = Optional.empty();

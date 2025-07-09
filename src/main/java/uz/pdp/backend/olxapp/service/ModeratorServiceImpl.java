@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import uz.pdp.backend.olxapp.entity.Product;
 import uz.pdp.backend.olxapp.enums.Status;
 import uz.pdp.backend.olxapp.exception.EntityNotFoundException;
+import uz.pdp.backend.olxapp.exception.IllegalActionException;
 import uz.pdp.backend.olxapp.payload.ModeratedProductDTO;
 import uz.pdp.backend.olxapp.payload.PageDTO;
 import uz.pdp.backend.olxapp.payload.RejectionDTO;
@@ -64,6 +65,12 @@ public class ModeratorServiceImpl implements ModeratorService {
                     return new EntityNotFoundException("Product not found with id: " + productId, HttpStatus.NOT_FOUND);
                 });
 
+        if (product.getStatus() == Status.ACTIVE) {
+            log.warn("Product already active: ID {}", productId);
+            throw new IllegalActionException("Product already active" , HttpStatus.BAD_REQUEST);
+        }
+
+
         product.setStatus(Status.ACTIVE);
         productRepository.save(product);
         log.info("Product approved successfully: ID {}, Title '{}'", product.getId(), product.getTitle());
@@ -77,7 +84,7 @@ public class ModeratorServiceImpl implements ModeratorService {
 
     @Override
     @Transactional
-    public ModeratedProductDTO  rejectProduct(Long productId, RejectionDTO rejectionDTO) {
+    public ModeratedProductDTO rejectProduct(Long productId, RejectionDTO rejectionDTO) {
         log.info("Rejecting product ID {} with reasons: {}", productId, rejectionDTO.getReasons());
 
         Product product = productRepository.findById(productId)
@@ -85,6 +92,20 @@ public class ModeratorServiceImpl implements ModeratorService {
                     log.warn("Product not found for rejection: ID {}", productId);
                     return new EntityNotFoundException("Product not found with id: " + productId, HttpStatus.NOT_FOUND);
                 });
+
+
+        if (product.getStatus() == Status.ACTIVE) {
+            log.warn("Product already active: ID {}", productId);
+            throw new IllegalActionException("You can not change the status of an active product" , HttpStatus.BAD_REQUEST);
+        }
+
+        if(product.getStatus() == Status.REJECTED) {
+            log.warn("Product already rejected: ID {}", productId);
+            throw new IllegalActionException("Product already rejected" , HttpStatus.BAD_REQUEST);
+        }
+
+
+
 
         product.setStatus(Status.REJECTED);
         product.setRejectionReasons(new HashSet<>(rejectionDTO.getReasons()));
@@ -98,4 +119,5 @@ public class ModeratorServiceImpl implements ModeratorService {
                 product.getDescription()
         );
     }
+
 }

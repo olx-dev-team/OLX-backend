@@ -7,10 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import uz.pdp.backend.olxapp.entity.Chat;
-import uz.pdp.backend.olxapp.entity.Message;
-import uz.pdp.backend.olxapp.entity.Product;
-import uz.pdp.backend.olxapp.entity.User;
+import uz.pdp.backend.olxapp.entity.*;
 import uz.pdp.backend.olxapp.exception.EntityNotFoundException;
 import uz.pdp.backend.olxapp.exception.IllegalActionException;
 import uz.pdp.backend.olxapp.mapper.ChatMapper;
@@ -19,10 +16,7 @@ import uz.pdp.backend.olxapp.payload.ChatDTO;
 import uz.pdp.backend.olxapp.payload.CreateMessageDTO;
 import uz.pdp.backend.olxapp.payload.MessageDTO;
 import uz.pdp.backend.olxapp.payload.PageDTO;
-import uz.pdp.backend.olxapp.repository.ChatRepository;
-import uz.pdp.backend.olxapp.repository.MessageRepository;
-import uz.pdp.backend.olxapp.repository.ProductRepository;
-import uz.pdp.backend.olxapp.repository.UserRepository;
+import uz.pdp.backend.olxapp.repository.*;
 
 import java.util.Comparator;
 import java.util.List;
@@ -44,6 +38,7 @@ public class ChatServiceImpl implements ChatService {
     private final ChatMapperImpl chatMapperImpl;
     private final MessageRepository messageRepository;
     private final ChatMapper chatMapper;
+    private final NotificationRepository notificationRepository;
 
 
     /**
@@ -154,6 +149,13 @@ public class ChatServiceImpl implements ChatService {
 
         chat.getMessages().add(newMessage);
         chatRepository.save(chat);
+
+        notificationRepository.save(new Notification(
+                createMessageDTO.getContent(),
+                false,
+                chat.getUserOne(),
+                chat.getUserTwo()
+        ));
 
         log.info("Message sent successfully by user {}", senderId);
         return chatMapperImpl.toMessageDTO(newMessage);

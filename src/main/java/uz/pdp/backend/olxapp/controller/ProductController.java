@@ -196,10 +196,10 @@ public class ProductController {
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "10") Integer size
     ) {
-        if (!captchaService.verify(filterDTO.getCaptchaToken())) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Invalid reCAPTCHA verification");
-        }
+//        if (!captchaService.verify(filterDTO.getCaptchaToken())) {
+//            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+//                    .body("Invalid reCAPTCHA verification");
+//        }
         return ResponseEntity.ok(productService.searchProducts(filterDTO, page, size));
     }
 
